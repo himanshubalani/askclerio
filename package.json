@@ -21,6 +21,7 @@
     "test-script": "tsx src/server/test.ts"
   },
   "dependencies": {
+    "@clerk/nextjs": "^7.5.2",
     "@corsair-dev/cli": "^0.1.19",
     "@corsair-dev/github": "^0.1.9",
     "@corsair-dev/gmail": "^0.1.4",

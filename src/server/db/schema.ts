@@ -1,4 +1,5 @@
 import { pgTable, text, jsonb, timestamp } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
 
 export const corsairIntegrations = pgTable('corsair_integrations', {
     id: text('id').primaryKey(),
@@ -38,4 +39,22 @@ export const corsairEvents = pgTable('corsair_events', {
     eventType: text('event_type').notNull(),
     payload: jsonb('payload').notNull().default({}),
     status: text('status'),
+});
+
+export const emailNotes = pgTable('email_notes', {
+    id: text('id').primaryKey().default(sql`gen_random_uuid()`),
+    userId: text('user_id').notNull(),
+    threadId: text('thread_id').notNull(),
+    note: text('note').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const calendarNotes = pgTable('calendar_notes', {
+    id: text('id').primaryKey().default(sql`gen_random_uuid()`),
+    userId: text('user_id').notNull(),
+    eventId: text('event_id').notNull(),
+    note: text('note').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
