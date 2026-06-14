@@ -18,7 +18,7 @@ export const calendarRouter = createTRPCRouter({
       events: cachedEvents.map(event => ({
         id: event.entity_id,
         data: event.data, // Contains summary, start, end
-        note: userNotes.find(n => n.eventId === event.entity_id)?.note || null
+        note: userNotes.find(n => n.eventId === event.entity_id)?.note ?? null
       })),
       stats: { todayCount: 0, hoursBlocked: 0 }
     };
