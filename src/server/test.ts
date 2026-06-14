@@ -1,12 +1,9 @@
 import { corsair } from "./corsair";
 
 const main = async () => {
-	const res = await corsair.withTenant('himanshu').gmail.db.threads.search({
-		data: {
-			snippet: {
-				contains: 'builders'
-			}
-		}
+	const res = await corsair.withTenant('himanshu').github.api.repositories.list({
+		owner: 'himanshubalani',
+		type: 'public',
 	})
 
 	console.log(res);
