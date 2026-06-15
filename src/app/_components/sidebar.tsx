@@ -1,0 +1,108 @@
+// src/app/_components/sidebar.tsx
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { 
+  Sparkles, Inbox, Send, Star, AlertCircle, Tag, 
+  Calendar as CalendarIcon, Settings, Moon, Loader2
+} from "lucide-react";
+import { api } from "@/trpc/react";
+
+export function Sidebar() {
+  const pathname = usePathname();
+  
+  const { data: labels, isLoading: isLoadingLabels } = api.gmail.getLabels.useQuery();
+
+  const customLabels = labels?.filter(
+    (label) => label.type === "user" && label.name !== "UNREAD" && label.name !== "IMPORTANT"
+  );
+
+  const navItems = [
+    { name: "Inbox", icon: Inbox, path: "/" },
+    { name: "Sent", icon: Send, path: "/sent" },
+    { name: "Important", icon: Star, path: "/important" },
+    { name: "Spam", icon: AlertCircle, path: "/spam" },
+  ];
+
+  return (
+    <aside className="flex h-screen w-64 flex-col border-r border-[#e1e5f2] bg-[#fcfcfc] px-4 py-6 antialiased">
+      {/* Clerio*/}
+      <div className="mb-8 px-2 flex items-center gap-2">
+        <div className="h-6 w-6 rounded-md bg-[#1f7a8c]" />
+        <span className="font-bold tracking-tight text-[#022b3a] text-lg">Clerio</span>
+      </div>
+
+      {/* CTA Button */}
+      <button className="mb-8 flex items-center justify-center gap-2 rounded-xl bg-[#022b3a] px-4 py-3 font-medium text-white transition-all hover:bg-[#1f7a8c] hover:shadow-sm active:scale-[0.98]">
+        <Sparkles className="h-4 w-4" />
+        Ask Clerio
+      </button>
+
+      {/* Gmail  */}
+      <nav className="flex flex-1 flex-col gap-1 overflow-y-auto pr-2">
+        {navItems.map((item) => {
+          const isActive = pathname === item.path;
+          return (
+            <Link
+              key={item.name}
+              href={item.path}
+              className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                isActive 
+                  ? "bg-[#bfdbf7]/30 text-[#1f7a8c]" 
+                  : "text-[#022b3a]/70 hover:bg-[#e1e5f2]/50 hover:text-[#022b3a]"
+              }`}
+            >
+              <item.icon className={`h-4 w-4 ${isActive ? "stroke-[2.5]" : "stroke-2"}`} />
+              {item.name}
+            </Link>
+          );
+        })}
+
+        <div className="my-4 h-px w-full bg-[#e1e5f2]" />
+
+        {/* Fetched Labels */}
+        <div className="px-3 mb-2 flex items-center justify-between">
+          <span className="text-xs font-bold uppercase tracking-wider text-[#022b3a]/50">Labels</span>
+          {isLoadingLabels && <Loader2 className="h-3 w-3 animate-spin text-[#022b3a]/40" />}
+        </div>
+        
+        {customLabels?.map((label) => (
+          <Link
+            key={label.id}
+            href={`/labels/${label.id}`}
+            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors text-[#022b3a]/70 hover:bg-[#e1e5f2]/50 hover:text-[#022b3a]"
+          >
+            <Tag className="h-4 w-4 stroke-2" />
+            <span className="truncate">{label.name}</span>
+          </Link>
+        ))}
+
+        <div className="my-4 h-px w-full bg-[#e1e5f2]" />
+
+        {/* Calendar */}
+        <Link
+          href="/calendar"
+          className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+            pathname.includes("/calendar")
+              ? "bg-[#bfdbf7]/30 text-[#1f7a8c]" 
+              : "text-[#022b3a]/70 hover:bg-[#e1e5f2]/50 hover:text-[#022b3a]"
+          }`}
+        >
+          <CalendarIcon className={`h-4 w-4 ${pathname.includes("/calendar") ? "stroke-[2.5]" : "stroke-2"}`} />
+          Calendar
+        </Link>
+      </nav>
+
+      {/* Bottom Actions */}
+      <div className="mt-auto flex items-center justify-between pt-4 border-t border-[#e1e5f2]">
+        <button className="rounded-lg p-2 text-[#022b3a]/60 hover:bg-[#e1e5f2]/50 hover:text-[#022b3a] transition-colors">
+          <Settings className="h-5 w-5" />
+        </button>
+        <button className="rounded-lg p-2 text-[#022b3a]/60 hover:bg-[#e1e5f2]/50 hover:text-[#022b3a] transition-colors">
+          <Moon className="h-5 w-5" />
+        </button>
+      </div>
+    </aside>
+  );
+}

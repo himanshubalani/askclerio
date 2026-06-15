@@ -4,10 +4,19 @@ import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { calendarNotes } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
 
+
+export interface GoogleCalendarEvent {
+  id: string;
+  summary: string;
+  start: string; // ISO string
+  end: string;   // ISO string
+  note: string | null; // User's private note for this event
+}
+
 export const calendarRouter = createTRPCRouter({
   getDashboardData: protectedProcedure.query(async ({ ctx }) => {
     // 1. Fetch cached events from Corsair DB
-    const cachedEvents = await ctx.tenant.googlecalendar.db.events.search({});
+    const cachedEvents = await ctx.tenant.googlecalendar.db.events.search({ limit: 100 });
 
     // 2. Fetch local private notes
     const userNotes = await ctx.db.query.calendarNotes.findMany({
@@ -15,13 +24,32 @@ export const calendarRouter = createTRPCRouter({
     });
 
     return {
-      events: cachedEvents.map(event => ({
-        id: event.entity_id,
-        data: event.data, // Contains summary, start, end
-        note: userNotes.find(n => n.eventId === event.entity_id)?.note ?? null
-      })),
+      events: cachedEvents.map((event) => {
+        const data = event.data; 
+        return {
+          id: event.entity_id,
+          summary: data.summary || "Untitled Event",
+          start: data.start?.dateTime || data.start?.date || "",
+          end: data.end?.dateTime || data.end?.date || "",
+          note: userNotes.find(n => n.eventId === event.entity_id)?.note ?? null
+        };
+      }),
       stats: { todayCount: 0, hoursBlocked: 0 }
     };
+  }),
+
+  
+  syncLatest: protectedProcedure.mutation(async ({ ctx }) => {
+    // Fetch upcoming events from the primary calendar
+    const res = await ctx.tenant.googlecalendar.api.events.getMany({
+      calendarId: "primary",
+      timeMin: new Date().toISOString(),
+      maxResults: 50,
+      singleEvents: true,
+      orderBy: "startTime",
+    });
+    
+    return { success: true, count: res.items?.length ?? 0 };
   }),
 
   // Schedule new meeting via API
@@ -32,7 +60,7 @@ export const calendarRouter = createTRPCRouter({
     location: z.string().optional(),
     start: z.object({
       dateTime: z.string().optional(),
-      date: z.string().optional(),       // for all-day events
+      date: z.string().optional(),      
       timeZone: z.string().optional(),
     }),
     end: z.object({

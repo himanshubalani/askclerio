@@ -22,25 +22,27 @@ export async function POST(request: NextRequest) {
 		headers[key] = value;
 	});
 
-	const contentType = request.headers.get('content-type');
+const contentType = request.headers.get('content-type');
 
-	let body: string | Record<string, unknown>;
+	let body: string | Record<string, unknown> = {};
+	const text = await request.text();
 
-	if (contentType?.includes('application/json')) {
-		body = await request.json();
-	} else {
-		const text = await request.text();
-		body = text && text.trim() ? text : {};
+	if (text?.trim()) {
+		try {
+			body = contentType?.includes('application/json') ? JSON.parse(text) : text;
+		} catch (e) {
+			console.error("Failed to parse webhook body:", e);
+			body = {};
+		}
 	}
 
-	const tenantId = 'himanshu'
+	const tenantId = request.headers.get('x-tenant-id') ?? 'default';
 
 	const result = await processWebhook(corsair, headers, body, { tenantId });
 
 	console.info('Plugin Processed:', result.plugin, result.action);
 
-	// Build response headers (e.g. Asana X-Hook-Secret handshake)
-	// any/unknown cast needed since responseHeaders is a newer field not yet in the installed type definitions
+
 	const responseHeaders = (result as Record<string, unknown>).responseHeaders as
 		| Record<string, string>
 		| undefined;
@@ -66,7 +68,6 @@ export async function POST(request: NextRequest) {
 		return NextResponse.json(result.response, { headers: nextHeaders });
 	}
 
-	// Webhook processed successfully, but no data to return to sender
 	return new NextResponse(null, { status: 200, headers: nextHeaders });
 }
 

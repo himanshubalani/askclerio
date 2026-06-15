@@ -3,7 +3,8 @@ import { withSentryConfig } from "@sentry/nextjs";
 
 /** @type {import("next").NextConfig} */
 const config = {
-  // Your standard Next.js configuration options go here
+  allowedDevOrigins: ['korey-hydrometric-soughfully.ngrok-free.dev', 'http://localhost'],
+  serverExternalPackages: ['import-in-the-middle', 'require-in-the-middle'],
 };
 
 export default withSentryConfig(config, {
