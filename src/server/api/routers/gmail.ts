@@ -88,6 +88,93 @@ export const gmailRouter = createTRPCRouter({
     }
     return { success: true };
   }),
+
+  getEmails: protectedProcedure.query(async ({ ctx }) => {
+    try {
+      const fetchMessages = await ctx.tenant.gmail.api.messages.list({ maxResults: 50 });
+      return { messages: fetchMessages.messages ?? [] };
+    } catch (error: any) {
+      const msg = String(error?.message || error);
+      if (msg.includes("Account not found") || msg.includes("auth-missing")) {
+        return { messages: [] };
+      }
+    throw error;
+    }
+  }),
+
+  getThread: protectedProcedure
+    .input(z.object({ threadId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      try {
+        const res = await ctx.tenant.gmail.api.threads.get({ id: input.threadId });
+        if (!res.messages) return null;
+
+        const decodeBase64Url = (data: string) => {
+          // Gmail uses base64url format, swap the characters back to standard base64 then decode to utf8
+          return Buffer.from(data.replace(/-/g, "+").replace(/_/g, "/"), "base64").toString("utf8");
+        };
+
+        const messages = res.messages.map((msg: any) => {
+          const headers = msg.payload?.headers ?? [];
+          const getHeaderVal = (name: string) =>
+            headers.find((h: any) => h.name.toLowerCase() === name.toLowerCase())?.value ?? "";
+
+          const from = getHeaderVal("From");
+          const to = getHeaderVal("To");
+          const subject = getHeaderVal("Subject");
+          const date = getHeaderVal("Date");
+
+          // Recursive function to dig through nested MIME parts to find text/html or text/plain
+          const extractBody = (part: any): string => {
+            if (part.body?.data) {
+              return decodeBase64Url(part.body.data);
+            }
+            if (part.parts) {
+              let htmlBody = "";
+              let textBody = "";
+              for (const p of part.parts) {
+                if (p.mimeType === "text/html") htmlBody = extractBody(p);
+                else if (p.mimeType === "text/plain") textBody = extractBody(p);
+                else if (p.parts) {
+                  const nested = extractBody(p);
+                  if (nested) return nested;
+                }
+              }
+              // Prefer HTML, fallback to text
+              return htmlBody || textBody;
+            }
+            return "";
+          };
+
+          const bodyStr = extractBody(msg.payload);
+
+          return {
+            id: msg.id,
+            snippet: msg.snippet,
+            from,
+            to,
+            subject: subject || "No Subject",
+            date: date || (msg.internalDate ? new Date(parseInt(msg.internalDate)).toISOString() : ""),
+            body: bodyStr,
+          };
+        });
+
+        return {
+          id: res.id,
+          subject: messages[0]?.subject ?? "No Subject",
+          messages,
+        };
+      } catch (error) {
+        console.error("Failed to fetch thread:", error);
+        throw error;
+      }
+    }),
+
+  trashThread: protectedProcedure
+    .input(z.object({ threadId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      return await ctx.tenant.gmail.api.threads.trash({ id: input.threadId });
+    }),
   
   getLabels: protectedProcedure.query(async ({ ctx }) => {
     try {

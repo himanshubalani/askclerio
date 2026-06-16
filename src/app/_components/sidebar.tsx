@@ -1,12 +1,10 @@
 // src/app/_components/sidebar.tsx
 "use client";
 
+import { HugeiconsIcon } from "@hugeicons/react";
+import { AlertCircleIcon, Calendar01Icon, InboxIcon, Loading02Icon, MoonIcon, SentIcon, Settings01Icon, SparklesIcon, StarIcon, Tag01Icon } from "@hugeicons/core-free-icons";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { 
-  Sparkles, Inbox, Send, Star, AlertCircle, Tag, 
-  Calendar as CalendarIcon, Settings, Moon, Loader2
-} from "lucide-react";
 import { api } from "@/trpc/react";
 
 export function Sidebar() {
@@ -19,10 +17,10 @@ export function Sidebar() {
   );
 
   const navItems = [
-    { name: "Inbox", icon: Inbox, path: "/" },
-    { name: "Sent", icon: Send, path: "/sent" },
-    { name: "Important", icon: Star, path: "/important" },
-    { name: "Spam", icon: AlertCircle, path: "/spam" },
+    { name: "Inbox", icon: InboxIcon, path: "/" },
+    { name: "Sent", icon: SentIcon, path: "/sent" },
+    { name: "Important", icon: StarIcon, path: "/important" },
+    { name: "Spam", icon: AlertCircleIcon, path: "/spam" },
   ];
 
   return (
@@ -35,7 +33,7 @@ export function Sidebar() {
 
       {/* CTA Button */}
       <button className="mb-8 flex items-center justify-center gap-2 rounded-xl bg-[#022b3a] px-4 py-3 font-medium text-white transition-all hover:bg-[#1f7a8c] hover:shadow-sm active:scale-[0.98]">
-        <Sparkles className="h-4 w-4" />
+        <HugeiconsIcon icon={SparklesIcon} className="h-4 w-4" />
         Ask Clerio
       </button>
 
@@ -53,7 +51,7 @@ export function Sidebar() {
                   : "text-[#022b3a]/70 hover:bg-[#e1e5f2]/50 hover:text-[#022b3a]"
               }`}
             >
-              <item.icon className={`h-4 w-4 ${isActive ? "stroke-[2.5]" : "stroke-2"}`} />
+              <HugeiconsIcon icon={item.icon} className={`h-4 w-4 ${isActive ? "stroke-[2.5]" : "stroke-2"}`} />
               {item.name}
             </Link>
           );
@@ -64,7 +62,7 @@ export function Sidebar() {
         {/* Fetched Labels */}
         <div className="px-3 mb-2 flex items-center justify-between">
           <span className="text-xs font-bold uppercase tracking-wider text-[#022b3a]/50">Labels</span>
-          {isLoadingLabels && <Loader2 className="h-3 w-3 animate-spin text-[#022b3a]/40" />}
+          {isLoadingLabels && <HugeiconsIcon icon={Loading02Icon} className="h-3 w-3 animate-spin text-[#022b3a]/40" />}
         </div>
         
         {customLabels?.map((label) => (
@@ -73,7 +71,7 @@ export function Sidebar() {
             href={`/labels/${label.id}`}
             className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors text-[#022b3a]/70 hover:bg-[#e1e5f2]/50 hover:text-[#022b3a]"
           >
-            <Tag className="h-4 w-4 stroke-2" />
+            <HugeiconsIcon icon={Tag01Icon} className="h-4 w-4 stroke-2" />
             <span className="truncate">{label.name}</span>
           </Link>
         ))}
@@ -89,7 +87,7 @@ export function Sidebar() {
               : "text-[#022b3a]/70 hover:bg-[#e1e5f2]/50 hover:text-[#022b3a]"
           }`}
         >
-          <CalendarIcon className={`h-4 w-4 ${pathname.includes("/calendar") ? "stroke-[2.5]" : "stroke-2"}`} />
+          <HugeiconsIcon icon={Calendar01Icon} className={`h-4 w-4 ${pathname.includes("/calendar") ? "stroke-[2.5]" : "stroke-2"}`} />
           Calendar
         </Link>
       </nav>
@@ -97,10 +95,10 @@ export function Sidebar() {
       {/* Bottom Actions */}
       <div className="mt-auto flex items-center justify-between pt-4 border-t border-[#e1e5f2]">
         <button className="rounded-lg p-2 text-[#022b3a]/60 hover:bg-[#e1e5f2]/50 hover:text-[#022b3a] transition-colors">
-          <Settings className="h-5 w-5" />
+          <HugeiconsIcon icon={Settings01Icon} className="h-5 w-5" />
         </button>
         <button className="rounded-lg p-2 text-[#022b3a]/60 hover:bg-[#e1e5f2]/50 hover:text-[#022b3a] transition-colors">
-          <Moon className="h-5 w-5" />
+          <HugeiconsIcon icon={MoonIcon} className="h-5 w-5" />
         </button>
       </div>
     </aside>

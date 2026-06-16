@@ -1,8 +1,10 @@
 "use client";
 
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Loading02Icon, Mail01Icon } from "@hugeicons/core-free-icons";
 import { ChatInput } from "@/app/_components/chat-input";
 import { api } from "@/trpc/react";
-import { Loader2, Mail } from "lucide-react";
+import Link from "next/link";
 
 function formatEmailTime(dateStr: string) { 
   if (!dateStr) return "";
@@ -30,7 +32,7 @@ export default function GmailDashboard() {
       <div className="flex flex-1 flex-col items-center justify-center bg-[#fcfcfc] antialiased">
         <div className="flex max-w-sm flex-col items-center text-center p-8 rounded-3xl bg-white border border-[#e1e5f2] shadow-[0_4px_24px_rgba(2,43,58,0.04)]">
           <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#bfdbf7]/30 text-[#1f7a8c]">
-            <Mail className="h-8 w-8 stroke-2" />
+            <HugeiconsIcon icon={Mail01Icon} className="h-8 w-8 stroke-2" />
           </div>
           <h2 className="mb-2 text-xl font-bold text-[#022b3a] text-balance">Connect your Workspace</h2>
           <p className="mb-8 text-sm text-[#022b3a]/60 text-pretty">
@@ -51,7 +53,7 @@ export default function GmailDashboard() {
 
   return (
     <>
-      <div className="flex-1 overflow-y-auto px-8 py-8 antialiased">
+      <div className="flex-1 max-w-320 overflow-y-auto px-8 py-8 antialiased">
         <header className="mb-8 flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-semibold text-[#022b3a] text-balance">Inbox</h1>
@@ -64,14 +66,14 @@ export default function GmailDashboard() {
             disabled={isFetching}
             className="flex items-center gap-2 rounded-md border border-[#e1e5f2] px-3 py-1.5 text-sm font-medium text-[#022b3a] hover:bg-[#fcfcfc] transition-colors shadow-sm disabled:opacity-50"
           >
-            {isFetching && <Loader2 className="h-3 w-3 animate-spin" />}
+            {isFetching && <HugeiconsIcon icon={Loading02Icon} className="h-3 w-3 animate-spin" />}
             {isFetching ? "Refreshing..." : "Refresh"}
           </button>
         </header>
 
         {isLoading ? (
           <div className="flex justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-[#1f7a8c]" />
+            <HugeiconsIcon icon={Loading02Icon} className="h-8 w-8 animate-spin text-[#1f7a8c]" />
           </div>
         ) : (
           <div className="flex flex-col gap-2">
@@ -79,7 +81,8 @@ export default function GmailDashboard() {
               const isUnread = thread.labels.includes("UNREAD");
               
               return (
-                <div 
+                <Link 
+                  href={`/thread/${thread.id}`}
                   key={thread.id} 
                   className={`flex items-center gap-4 rounded-xl border p-4 transition-all hover:border-[#bfdbf7] hover:shadow-[0_2px_8px_rgba(2,43,58,0.04)] animate-in fade-in slide-in-from-bottom-4 fill-mode-backwards
                     ${isUnread ? "bg-white border-[#e1e5f2]" : "bg-[#fcfcfc]/50 border-transparent"}
@@ -93,7 +96,9 @@ export default function GmailDashboard() {
                     <span className={`${isUnread ? "font-bold text-[#022b3a]" : "font-semibold text-[#022b3a]/90"}`}>
                       {thread.subject}
                     </span>
-                    <span className="ml-2 text-[#022b3a]/60 text-pretty text-sm" dangerouslySetInnerHTML={{ __html: `— ${thread.snippet}` }} />
+                    <span className="ml-2 text-[#022b3a]/60 text-pretty text-sm">  
+                      — {thread.snippet}  
+                    </span> 
                   </div>
                   {thread.note && (
                     <span className="hidden md:inline-flex items-center rounded-full bg-[#bfdbf7]/30 px-2.5 py-0.5 text-xs font-medium text-[#1f7a8c]">
@@ -103,7 +108,7 @@ export default function GmailDashboard() {
                   <div className={`text-xs tabular-nums text-right w-16 ${isUnread ? "font-bold text-[#1f7a8c]" : "font-medium text-[#022b3a]/50"}`}>
                     {formatEmailTime(thread.date)}
                   </div>
-                </div>
+                </Link>
               );
             })}
 
