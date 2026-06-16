@@ -12,62 +12,56 @@ export async function POST(request: NextRequest) {
 	if (validationToken) {
 		return new NextResponse(validationToken, {
 			status: 200,
-			headers: {
-				'Content-Type': 'text/plain; charset=utf-8',
-			},
+			headers: { 'Content-Type': 'text/plain; charset=utf-8' },
 		});
 	}
-	const headers: Record<string, string> = {};
-	request.headers.forEach((value, key) => {
-		headers[key] = value;
-	});
 
+	const headers = Object.fromEntries(request.headers.entries());
 	const contentType = request.headers.get('content-type');
+	const text = await request.text();
 
-	let body: string | Record<string, unknown>;
-
-	if (contentType?.includes('application/json')) {
-		body = await request.json();
-	} else {
-		const text = await request.text();
-		body = text && text.trim() ? text : {};
-	}
-
-	const tenantId = 'himanshu'
-
-	const result = await processWebhook(corsair, headers, body, { tenantId });
-
-	console.info('Plugin Processed:', result.plugin, result.action);
-
-	// Build response headers (e.g. Asana X-Hook-Secret handshake)
-	// any/unknown cast needed since responseHeaders is a newer field not yet in the installed type definitions
-	const responseHeaders = (result as Record<string, unknown>).responseHeaders as
-		| Record<string, string>
-		| undefined;
-	const nextHeaders = new Headers();
-	if (responseHeaders) {
-		for (const [key, value] of Object.entries(responseHeaders)) {
-			nextHeaders.set(key, value);
+	let body: string | Record<string, unknown> = {};
+	if (text?.trim()) {
+		try {
+			body = contentType?.includes('application/json') ? JSON.parse(text) : text;
+		} catch (e) {
+			console.error("Failed to parse webhook body:", e);
+			body = text;
 		}
 	}
 
-	// Handle case where no webhook matched
-	if (!result.response) {
-		return NextResponse.json(
-			{
-				success: false,
-				message: 'No matching webhook handler found',
-			},
-			{ status: 404 },
-		);
-	}
+	// 1. Look for tenantId in the URL (for standard plugins)
+	// 2. Look in the headers (for custom setups)
+	// 3. If neither exist, let it be null so Corsair can auto-resolve Gmail via the payload!
+	const tenantId = url.searchParams.get('tenantId') 
+		|| url.searchParams.get('tenant') 
+		|| request.headers.get('x-tenant-id');
 
-	if (result.response !== undefined) {
+	try {
+		const result = await processWebhook(corsair, headers, body, { 
+			tenantId: tenantId ?? undefined 
+		});
+
+		console.info('Plugin Processed:', result.plugin, result.action);
+
+		const responseHeaders = (result as Record<string, unknown>).responseHeaders as Record<string, string> | undefined;
+		const nextHeaders = new Headers(responseHeaders);
+
+		if (!result.response) {
+			return NextResponse.json(
+				{ success: false, message: 'No matching webhook handler found' },
+				{ status: 404 }
+			);
+		}
+
 		return NextResponse.json(result.response, { headers: nextHeaders });
-	}
 
-	// Webhook processed successfully, but no data to return to sender
-	return new NextResponse(null, { status: 200, headers: nextHeaders });
+	} catch (error) {
+		console.error("Webhook processing failed:", error);
+		
+		// Return 200 OK even on failure so Pub/Sub clears the message from its retry queue!
+		return new NextResponse("Webhook processed with errors", { status: 200 });
+	}
 }
 
 export async function GET() {

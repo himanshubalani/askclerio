@@ -2,7 +2,7 @@ import { pgTable, text, jsonb, timestamp } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 
 export const corsairIntegrations = pgTable('corsair_integrations', {
-    id: text('id').primaryKey(),
+    id: text('id').primaryKey().notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
     name: text('name').notNull(),
@@ -11,7 +11,7 @@ export const corsairIntegrations = pgTable('corsair_integrations', {
 });
 
 export const corsairAccounts = pgTable('corsair_accounts', {
-    id: text('id').primaryKey(),
+    id: text('id').primaryKey().notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
     tenantId: text('tenant_id').notNull(),
@@ -21,7 +21,7 @@ export const corsairAccounts = pgTable('corsair_accounts', {
 });
 
 export const corsairEntities = pgTable('corsair_entities', {
-    id: text('id').primaryKey(),
+    id: text('id').primaryKey().notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
     accountId: text('account_id').notNull().references(() => corsairAccounts.id),
@@ -32,7 +32,7 @@ export const corsairEntities = pgTable('corsair_entities', {
 });
 
 export const corsairEvents = pgTable('corsair_events', {
-    id: text('id').primaryKey(),
+    id: text('id').primaryKey().notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
     accountId: text('account_id').notNull().references(() => corsairAccounts.id),
@@ -41,8 +41,8 @@ export const corsairEvents = pgTable('corsair_events', {
     status: text('status'),
 });
 
-export const emailNotes = pgTable('email_notes', {
-    id: text('id').primaryKey().default(sql`gen_random_uuid()`),
+export const emailNotes = pgTable('askclerio_email_notes', { 
+    id: text('id').primaryKey().default(sql`gen_random_uuid()`).notNull(),
     userId: text('user_id').notNull(),
     threadId: text('thread_id').notNull(),
     note: text('note').notNull(),
@@ -50,8 +50,8 @@ export const emailNotes = pgTable('email_notes', {
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
-export const calendarNotes = pgTable('calendar_notes', {
-    id: text('id').primaryKey().default(sql`gen_random_uuid()`),
+export const calendarNotes = pgTable('askclerio_calendar_notes', {
+    id: text('id').primaryKey().default(sql`gen_random_uuid()`).notNull(),
     userId: text('user_id').notNull(),
     eventId: text('event_id').notNull(),
     note: text('note').notNull(),
