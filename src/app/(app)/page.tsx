@@ -16,13 +16,14 @@ export default function GmailDashboard() {
   const utils = api.useUtils();
   const { data, isLoading, isFetching, refetch } = api.gmail.getDashboardData.useQuery();
 
-  const syncAuth = api.auth.syncGoogleCredentials.useMutation({
-    onSuccess: () => {
-    	void utils.gmail.getDashboardData.invalidate();
-		void utils.gmail.getLabels.invalidate();
-		void utils.calendar.getDashboardData.invalidate();
-    }
-  });
+  
+  
+  const syncLatest = api.gmail.syncLatest.useMutation({
+  onSuccess: () => {
+    // This tells tRPC to re-read the local DB now that we've pulled fresh emails from Google
+    void utils.gmail.getDashboardData.invalidate();
+  }
+});
 
   // 1. If not synced yet, show the Connect screen
   if (data?.needsAuth) {
@@ -36,13 +37,11 @@ export default function GmailDashboard() {
           <p className="mb-8 text-sm text-[#022b3a]/60 text-pretty">
             Clerio needs access to your Gmail and Google Calendar to power your command center.
           </p>
-          <button 
-            onClick={() => syncAuth.mutate()}
-            disabled={syncAuth.isPending}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#022b3a] px-4 py-3 font-medium text-white transition-all hover:bg-[#1f7a8c] hover:shadow-sm active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
+          <button
+            onClick={() => window.open('/api/auth/google/start', '_blank')}
+            className="flex items-center gap-2 rounded-md border border-[#e1e5f2] px-3 py-1.5 text-sm font-medium text-[#022b3a] hover:bg-[#fcfcfc] transition-colors shadow-sm"
           >
-            {syncAuth.isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : null}
-            {syncAuth.isPending ? "Syncing Credentials..." : "Sync Credentials"}
+            Connect Workspace
           </button>
         </div>
       </div>
