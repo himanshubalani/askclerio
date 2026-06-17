@@ -1,8 +1,9 @@
-//src\app\(app)\page.tsx
+// src/app/(app)/u/page.tsx
 "use client";
 
+import { useState, useMemo } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Loading02Icon, Mail01Icon, MailOpen01Icon } from "@hugeicons/core-free-icons";
+import { Loading02Icon, Mail01Icon, MailOpen01Icon, Search01Icon } from "@hugeicons/core-free-icons";
 import { ChatInput } from "@/app/_components/chat-input";
 import { MailboxView } from "@/app/_components/mailbox-view";
 import { GoogleOAuthConnection } from "@/app/_components/oauth-connections";
@@ -25,6 +26,8 @@ export default function GmailDashboard() {
   const { data, isLoading, isFetching, refetch } = api.gmail.getDashboardData.useQuery();
   const utils = api.useUtils();
   
+  const [searchQuery, setSearchQuery] = useState("");
+  
   const syncMutation = api.gmail.syncLatest.useMutation({
     onSuccess: async () => {
       // Invalidate the dashboard cache so it refetches fresh data
@@ -37,11 +40,22 @@ export default function GmailDashboard() {
   });
 
   const markAsRead = api.gmail.markRead.useMutation({
-  onSuccess: () => utils.gmail.getDashboardData.invalidate(),
-});
-const markAsUnread = api.gmail.markUnread.useMutation({
-  onSuccess: () => utils.gmail.getDashboardData.invalidate(),
-});
+    onSuccess: () => utils.gmail.getDashboardData.invalidate(),
+  });
+  const markAsUnread = api.gmail.markUnread.useMutation({
+    onSuccess: () => utils.gmail.getDashboardData.invalidate(),
+  });
+
+  const filteredThreads = useMemo(() => {
+    if (!data?.threads) return [];
+    if (!searchQuery.trim()) return data.threads;
+    const lowerQuery = searchQuery.toLowerCase();
+    return data.threads.filter((t) =>
+      t.subject?.toLowerCase().includes(lowerQuery) ||
+      t.sender?.toLowerCase().includes(lowerQuery) ||
+      t.snippet?.toLowerCase().includes(lowerQuery)
+    );
+  }, [data?.threads, searchQuery]);
 
   // 1. If not synced yet, show the Connect screen
   if (data?.needsAuth) {
@@ -67,18 +81,28 @@ const markAsUnread = api.gmail.markUnread.useMutation({
   return (
     <>
       <div className="flex-1 max-w-320 overflow-y-auto px-8 py-8 antialiased">
-        <header className="mb-8 flex items-center justify-between">
+        <header className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-semibold text-[#022b3a] text-balance">Inbox</h1>
             <p className="text-sm text-[#022b3a]/60 text-pretty mt-1 tabular-nums">
               {isLoading ? "Loading..." : `${data?.threads?.length || 0} recent threads`}
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="relative flex items-center mr-2">
+              <HugeiconsIcon icon={Search01Icon} className="absolute left-3 h-4 w-4 text-[#022b3a]/40" />
+              <input
+                type="text"
+                placeholder="Search inbox..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="h-9 w-full md:w-64 rounded-md border border-[#e1e5f2] bg-white pl-9 pr-3 text-sm text-[#022b3a] placeholder:text-[#022b3a]/40 focus:border-[#1f7a8c] focus:outline-none focus:ring-1 focus:ring-[#1f7a8c] transition-all shadow-sm"
+              />
+            </div>
             <button 
               onClick={() => syncMutation.mutate()}
               disabled={syncMutation.isPending || isFetching}
-              className="flex items-center gap-2 rounded-md border border-[#e1e5f2] px-3 py-1.5 text-sm font-medium text-[#022b3a] hover:bg-[#fcfcfc] transition-colors shadow-sm disabled:opacity-50"
+              className="flex items-center gap-2 rounded-md border border-[#e1e5f2] bg-white px-3 py-1.5 text-sm font-medium text-[#022b3a] hover:bg-[#fcfcfc] transition-colors shadow-sm disabled:opacity-50 h-9"
             >
               {syncMutation.isPending && <HugeiconsIcon icon={Loading02Icon} className="h-3 w-3 animate-spin" />}
               {syncMutation.isPending ? "Syncing..." : "Sync"}
@@ -86,7 +110,7 @@ const markAsUnread = api.gmail.markUnread.useMutation({
             <button 
               onClick={() => refetch()}
               disabled={isFetching || syncMutation.isPending}
-              className="flex items-center gap-2 rounded-md border border-[#e1e5f2] px-3 py-1.5 text-sm font-medium text-[#022b3a] hover:bg-[#fcfcfc] transition-colors shadow-sm disabled:opacity-50"
+              className="flex items-center gap-2 rounded-md border border-[#e1e5f2] bg-white px-3 py-1.5 text-sm font-medium text-[#022b3a] hover:bg-[#fcfcfc] transition-colors shadow-sm disabled:opacity-50 h-9"
             >
               {isFetching && <HugeiconsIcon icon={Loading02Icon} className="h-3 w-3 animate-spin" />}
               {isFetching ? "Refreshing..." : "Refresh"}
@@ -101,7 +125,7 @@ const markAsUnread = api.gmail.markUnread.useMutation({
         ) : (
           <div className="flex flex-col gap-6">
             {/* Labels Section */}
-            {data?.labels && data.labels.length > 0 && (
+            {data?.labels && data.labels.length > 0 && !searchQuery && (
               <div>
                 <h3 className="text-sm font-semibold text-[#022b3a]/60 mb-3">Labels</h3>
                 <div className="flex flex-wrap gap-2">
@@ -126,7 +150,7 @@ const markAsUnread = api.gmail.markUnread.useMutation({
             )}
 
             <div className="flex flex-col gap-2">
-              {data?.threads?.map((thread, i) => {
+              {filteredThreads.map((thread, i) => {
               const isUnread = thread.labels.includes("UNREAD");
               
               return (
@@ -155,24 +179,24 @@ const markAsUnread = api.gmail.markUnread.useMutation({
                     </span>
                   )}
                   <button
-  onClick={(e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (isUnread) {
-      markAsRead.mutate({ threadId: thread.id });
-    } else {
-      markAsUnread.mutate({ threadId: thread.id });
-    }
-  }}
-  disabled={markAsRead.isPending || markAsUnread.isPending}
-  title={isUnread ? "Mark as read" : "Mark as unread"}
-  className="shrink-0 flex items-center justify-center rounded-md p-1.5 text-[#022b3a]/40 hover:text-[#1f7a8c] hover:bg-[#bfdbf7]/20 transition-colors disabled:opacity-40"
->
-  <HugeiconsIcon
-    icon={isUnread ? MailOpen01Icon : Mail01Icon}
-    className="h-4 w-4 stroke-2"
-  />
-</button>
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      if (isUnread) {
+                        markAsRead.mutate({ threadId: thread.id });
+                      } else {
+                        markAsUnread.mutate({ threadId: thread.id });
+                      }
+                    }}
+                    disabled={markAsRead.isPending || markAsUnread.isPending}
+                    title={isUnread ? "Mark as read" : "Mark as unread"}
+                    className="shrink-0 flex items-center justify-center rounded-md p-1.5 text-[#022b3a]/40 hover:text-[#1f7a8c] hover:bg-[#bfdbf7]/20 transition-colors disabled:opacity-40"
+                  >
+                    <HugeiconsIcon
+                      icon={isUnread ? MailOpen01Icon : Mail01Icon}
+                      className="h-4 w-4 stroke-2"
+                    />
+                  </button>
                   <div className={`text-xs tabular-nums text-right w-16 ${isUnread ? "font-bold text-[#1f7a8c]" : "font-medium text-[#022b3a]/50"}`}>
                     {formatEmailTime(thread.date)}
                   </div>
@@ -181,9 +205,15 @@ const markAsUnread = api.gmail.markUnread.useMutation({
               })}
             </div>
 
-            {data?.threads?.length === 0 && (
+            {data?.threads && data.threads.length === 0 && (
               <div className="text-center py-12 text-[#022b3a]/50">
                 No emails found in the local cache. Please sync your account or wait for webhooks.
+              </div>
+            )}
+            
+            {data?.threads && data.threads.length > 0 && filteredThreads.length === 0 && (
+              <div className="text-center py-12 text-[#022b3a]/50">
+                No emails match your search "{searchQuery}".
               </div>
             )}
           </div>

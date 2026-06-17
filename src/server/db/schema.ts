@@ -62,6 +62,10 @@ export const calendarNotes = pgTable('askclerio_calendar_notes', {
 // --- ENUMS ---
 export const roleEnum = pgEnum('chat_message_role', ['user', 'assistant', 'system', 'tool']);
 export const priorityEnum = pgEnum('email_priority', ['high', 'normal', 'low']);
+export const toolCallStatusEnum = pgEnum('tool_call_status', [
+    'draft', 'awaiting_confirmation', 'running', 'done', 'cancelled', 'failed'
+]);
+export const toolTrustModeEnum = pgEnum('tool_trust_mode', ['ask_every_time', 'auto_run']);
 
 // --- USERS ---
 export const users = pgTable('askclerio_users', {
@@ -93,6 +97,36 @@ export const chatMessages = pgTable('askclerio_chat_messages', {
     toolCalls: jsonb('tool_calls'),     // JSON for Vercel AI SDK MCP tool executions
     toolResults: jsonb('tool_results'), // Results from the executed tools
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+// --- TOOL CALL AUDIT TRAIL ---
+export const chatToolCalls = pgTable('askclerio_chat_tool_calls', {
+    id: text('id').primaryKey().default(sql`gen_random_uuid()`).notNull(),
+    messageId: text('message_id').notNull().references(() => chatMessages.id),
+    conversationId: text('conversation_id').notNull().references(() => chatConversations.id),
+    toolName: text('tool_name').notNull(),
+    toolCallId: text('tool_call_id').notNull(), // AI SDK tool call ID
+    parameters: jsonb('parameters').notNull().default({}),
+    editedParameters: jsonb('edited_parameters'), // User-edited params (if any)
+    result: jsonb('result'),
+    status: toolCallStatusEnum('status').notNull().default('draft'),
+    retryCount: text('retry_count').notNull().default('0'),
+    errorMessage: text('error_message'),
+    approvalToken: text('approval_token'), // Server-side approval secret (task 10.3)
+    startedAt: timestamp('started_at', { withTimezone: true }),
+    completedAt: timestamp('completed_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+// --- PER-USER PER-TOOL TRUST CONFIGURATION ---
+export const chatToolSettings = pgTable('askclerio_chat_tool_settings', {
+    id: text('id').primaryKey().default(sql`gen_random_uuid()`).notNull(),
+    userId: text('user_id').notNull().references(() => users.id),
+    toolName: text('tool_name').notNull(),
+    trustMode: toolTrustModeEnum('trust_mode').notNull().default('ask_every_time'),
+    classification: text('classification').notNull().default('write'), // 'read' | 'write'
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
 // --- AI METADATA & VECTOR SEARCH ---

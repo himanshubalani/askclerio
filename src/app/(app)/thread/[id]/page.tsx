@@ -79,7 +79,7 @@ export default function ThreadView({ params }: { params: Promise<{ id: string }>
         <div className="flex items-center gap-4">
           <button
             onClick={() => router.back()}
-            className="rounded-md p-2 text-[#022b3a]/60 transition-colors hover:bg-[#e1e5f2]/50 hover:text-[#022b3a]"
+            className="rounded-md p-2 text-[#022b3a]/60 transition-[color,background-color] hover:bg-[#e1e5f2]/50 hover:text-[#022b3a]"
           >
             <HugeiconsIcon icon={ArrowLeft01Icon} className="h-5 w-5" />
           </button>
@@ -88,18 +88,18 @@ export default function ThreadView({ params }: { params: Promise<{ id: string }>
           </h1>
         </div>
 
-        <div className="flex items-center gap-1 bg-[#fcfcfc] border border-[#e1e5f2] p-1 rounded-lg">
+        <div className="flex items-center gap-1 bg-[#fcfcfc] border border-[#e1e5f2] p-1 rounded-xl">
           <button
             onClick={handleReply}
             title="Reply via Clerio"
-            className="rounded-md p-2 text-[#022b3a]/60 transition-colors hover:bg-white hover:shadow-sm hover:text-[#1f7a8c]"
+            className="rounded-md p-2 text-[#022b3a]/60 transition-[color,background-color,box-shadow] hover:bg-white hover:shadow-sm hover:text-[#1f7a8c] active:scale-[0.96]"
           >
             <HugeiconsIcon icon={MailReply01Icon} className="h-4 w-4 stroke-[2.5]" />
           </button>
           <button
             onClick={handleForward}
             title="Forward via Clerio"
-            className="rounded-md p-2 text-[#022b3a]/60 transition-colors hover:bg-white hover:shadow-sm hover:text-[#1f7a8c]"
+            className="rounded-md p-2 text-[#022b3a]/60 transition-[color,background-color,box-shadow] hover:bg-white hover:shadow-sm hover:text-[#1f7a8c] active:scale-[0.96]"
           >
             <HugeiconsIcon icon={Forward01Icon} className="h-4 w-4 stroke-[2.5]" />
           </button>
@@ -111,7 +111,7 @@ export default function ThreadView({ params }: { params: Promise<{ id: string }>
             onClick={handleToggleRead}
             disabled={isTogglingRead || isLoading}
             title={isUnread ? "Mark as read" : "Mark as unread"}
-            className="rounded-md p-2 text-[#022b3a]/60 transition-colors hover:bg-white hover:shadow-sm hover:text-[#1f7a8c] disabled:opacity-40"
+            className="rounded-md p-2 text-[#022b3a]/60 transition-[color,background-color,box-shadow] hover:bg-white hover:shadow-sm hover:text-[#1f7a8c] active:scale-[0.96] disabled:opacity-40"
           >
             {isTogglingRead ? (
               <HugeiconsIcon icon={Loading02Icon} className="h-4 w-4 animate-spin" />
@@ -127,7 +127,7 @@ export default function ThreadView({ params }: { params: Promise<{ id: string }>
             onClick={() => archiveMut.mutate({ threadId: id })}
             title="Archive"
             disabled={archiveMut.isPending}
-            className="rounded-md p-2 text-[#022b3a]/60 transition-colors hover:bg-white hover:shadow-sm hover:text-[#1f7a8c] disabled:opacity-50"
+            className="rounded-md p-2 text-[#022b3a]/60 transition-[color,background-color,box-shadow] hover:bg-white hover:shadow-sm hover:text-[#1f7a8c] active:scale-[0.96] disabled:opacity-50"
           >
             {archiveMut.isPending ? (
               <HugeiconsIcon icon={Loading02Icon} className="h-4 w-4 animate-spin" />
@@ -139,7 +139,7 @@ export default function ThreadView({ params }: { params: Promise<{ id: string }>
             onClick={() => trashMut.mutate({ threadId: id })}
             title="Trash"
             disabled={trashMut.isPending}
-            className="rounded-md p-2 text-[#022b3a]/60 transition-colors hover:bg-white hover:shadow-sm hover:text-red-600 disabled:opacity-50"
+            className="rounded-md p-2 text-[#022b3a]/60 transition-[color,background-color,box-shadow] hover:bg-white hover:shadow-sm hover:text-red-600 active:scale-[0.96] disabled:opacity-50"
           >
             {trashMut.isPending ? (
               <HugeiconsIcon icon={Loading02Icon} className="h-4 w-4 animate-spin" />

@@ -18,6 +18,10 @@ export function useCalendarDashboard() {
     onSuccess: () => utils.calendar.getDashboardData.invalidate(),
   });
 
+  const deleteEvent = api.calendar.deleteEvent.useMutation({
+    onSuccess: () => utils.calendar.getDashboardData.invalidate(),
+  })
+
   const saveNote = api.calendar.saveNote.useMutation({
     onSuccess: () => utils.calendar.getDashboardData.invalidate(),
   });
@@ -38,6 +42,7 @@ export function useCalendarDashboard() {
     upcomingGroups,
     syncLatest,
     createEvent,
+    deleteEvent,
     saveNote,
     refetch,
   };

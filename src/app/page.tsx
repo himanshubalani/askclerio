@@ -31,19 +31,19 @@ export default async function LandingPage() {
 
         <div className="flex flex-wrap items-center justify-center gap-3">
           <SignUpButton>
-            <button className="h-11 px-6 rounded-xl bg-[#022b3a] text-white font-medium text-sm hover:bg-[#1f7a8c] transition-colors shadow-sm">
+            <button className="h-11 px-6 rounded-xl bg-[#022b3a] text-white font-medium text-sm hover:bg-[#1f7a8c] shadow-[0_2px_8px_rgba(2,43,58,0.12),0_1px_2px_rgba(2,43,58,0.08)] hover:shadow-[0_4px_16px_rgba(2,43,58,0.16),0_2px_4px_rgba(2,43,58,0.1)] active:scale-[0.96] transition-[transform,background-color,box-shadow]">
               Get started for free
             </button>
           </SignUpButton>
           <SignInButton>
-            <button className="h-11 px-6 rounded-xl border border-[#e1e5f2] text-[#022b3a] font-medium text-sm hover:bg-[#f0f7ff] transition-colors">
+            <button className="h-11 px-6 rounded-xl border border-[#e1e5f2] text-[#022b3a] font-medium text-sm hover:bg-[#f0f7ff] active:scale-[0.96] transition-[transform,background-color]">
               Sign in
             </button>
           </SignInButton>
         </div>
 
         {/* Hero image placeholder */}
-        <div className="mt-16 w-full max-w-4xl rounded-2xl border border-[#e1e5f2] shadow-[0_8px_40px_rgba(2,43,58,0.08)] bg-[#fcfcfc] overflow-hidden">
+        <div className="mt-16 w-full max-w-4xl rounded-2xl shadow-[0_8px_40px_rgba(2,43,58,0.08),0_2px_8px_rgba(2,43,58,0.04)] bg-[#fcfcfc] overflow-hidden">
           <div className="flex items-center gap-1.5 px-4 py-3 border-b border-[#e1e5f2] bg-white">
             <div className="h-2.5 w-2.5 rounded-full bg-[#e1e5f2]" />
             <div className="h-2.5 w-2.5 rounded-full bg-[#e1e5f2]" />
@@ -56,7 +56,7 @@ export default async function LandingPage() {
               alt="Clerio app preview"
               width={56}
               height={56}
-              className="opacity-10"
+              className="opacity-10 outline outline-1 outline-[rgba(0,0,0,0.1)] rounded-md"
             />
           </div>
         </div>
@@ -89,7 +89,7 @@ export default async function LandingPage() {
             ].map((f) => (
               <div
                 key={f.title}
-                className="rounded-2xl border border-[#e1e5f2] bg-white p-6 shadow-sm"
+                className="rounded-2xl bg-white p-6 shadow-[0_2px_8px_rgba(2,43,58,0.04),0_1px_2px_rgba(2,43,58,0.02)]"
               >
                 <div className="text-3xl mb-4">{f.icon}</div>
                 <h3 className="font-semibold text-[#022b3a] mb-2">{f.title}</h3>
@@ -116,7 +116,7 @@ export default async function LandingPage() {
           Connect Gmail and Calendar in under a minute. No credit card required.
         </p>
         <SignUpButton>
-          <button className="h-11 px-8 rounded-xl bg-[#022b3a] text-white font-medium text-sm hover:bg-[#1f7a8c] transition-colors shadow-sm">
+          <button className="h-11 px-8 rounded-xl bg-[#022b3a] text-white font-medium text-sm hover:bg-[#1f7a8c] shadow-[0_2px_8px_rgba(2,43,58,0.12),0_1px_2px_rgba(2,43,58,0.08)] hover:shadow-[0_4px_16px_rgba(2,43,58,0.16),0_2px_4px_rgba(2,43,58,0.1)] active:scale-[0.96] transition-[transform,background-color,box-shadow]">
             Start for free
           </button>
         </SignUpButton>
@@ -129,6 +129,7 @@ export default async function LandingPage() {
           alt="Clerio"
           width={64}
           height={22}
+          className="outline outline-1 outline-[rgba(0,0,0,0.1)] rounded"
         />
         <span>© {new Date().getFullYear()} Clerio</span>
       </footer>
