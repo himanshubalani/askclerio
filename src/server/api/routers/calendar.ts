@@ -1,9 +1,7 @@
-// src/server/api/routers/calendar.ts
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { calendarNotes } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
-
 
 export interface GoogleCalendarEvent {
   id: string;

@@ -1,4 +1,3 @@
-// src/server/api/routers/gmail.ts
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { emailNotes } from "@/server/db/schema";
@@ -205,8 +204,10 @@ export const gmailRouter = createTRPCRouter({
     try {
       const res = await ctx.tenant.gmail.api.labels.list({});
       return res.labels ?? [];
-    } catch (error: unknown) {
-      if (error instanceof Error && error.message.includes("Account not found")) return [];
+    } catch (error: any) {
+      const msg = String(error?.message || error);
+      // Gracefully return empty labels if auth is missing or account not found
+      if (msg.includes("Account not found") || msg.includes("auth-missing")) return [];
       throw error;
     }
   }),
