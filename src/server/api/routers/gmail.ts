@@ -105,9 +105,7 @@ export const gmailRouter = createTRPCRouter({
       });
       if (res.messages) {
         await Promise.all(
-          res.messages.map((m: any) =>
-            ctx.tenant.gmail.api.messages.get({ id: m.id })
-          )
+          res.messages.map((m: any) => ctx.tenant.gmail.api.messages.get({ id: m.id }))
         );
       }
       return { success: true };

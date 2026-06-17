@@ -17,19 +17,15 @@ export function Sidebar() {
   );
 
   const navItems = [
-    { name: "Inbox", icon: InboxIcon, path: "/" },
-    { name: "Sent", icon: SentIcon, path: "/sent" },
-    { name: "Important", icon: StarIcon, path: "/important" },
-    { name: "Spam", icon: AlertCircleIcon, path: "/spam" },
+    { name: "Inbox", icon: InboxIcon, path: "/u" },
+    { name: "Sent", icon: SentIcon, path: "/u/sent" },
+    { name: "Important", icon: StarIcon, path: "/u/important" },
+    { name: "Spam", icon: AlertCircleIcon, path: "/u/spam" },
   ];
 
   return (
     <aside className="flex h-screen w-64 flex-col border-r border-[#e1e5f2] bg-[#fcfcfc] px-4 py-6 antialiased">
-      {/* Clerio*/}
-      <div className="mb-8 px-2 flex items-center gap-2">
-        <div className="h-6 w-6 rounded-md bg-[#1f7a8c]" />
-        <span className="font-bold tracking-tight text-[#022b3a] text-lg">Clerio</span>
-      </div>
+      
 
       {/* CTA Button */}
       <button className="mb-8 flex items-center justify-center gap-2 rounded-xl bg-[#022b3a] px-4 py-3 font-medium text-white transition-all hover:bg-[#1f7a8c] hover:shadow-sm active:scale-[0.98]">
@@ -80,14 +76,14 @@ export function Sidebar() {
 
         {/* Calendar */}
         <Link
-          href="/calendar"
+          href="/u/calendar"
           className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-            pathname.includes("/calendar")
+            pathname.includes("/u/calendar")
               ? "bg-[#bfdbf7]/30 text-[#1f7a8c]" 
               : "text-[#022b3a]/70 hover:bg-[#e1e5f2]/50 hover:text-[#022b3a]"
           }`}
         >
-          <HugeiconsIcon icon={Calendar01Icon} className={`h-4 w-4 ${pathname.includes("/calendar") ? "stroke-[2.5]" : "stroke-2"}`} />
+          <HugeiconsIcon icon={Calendar01Icon} className={`h-4 w-4 ${pathname.includes("/u/calendar") ? "stroke-[2.5]" : "stroke-2"}`} />
           Calendar
         </Link>
       </nav>

@@ -14,45 +14,12 @@ export interface GoogleCalendarEvent {
 }
 
 export const calendarRouter = createTRPCRouter({
+  // Reads exclusively from the Corsair DB cache — fast, no live API call.
+  // Call syncLatest first to populate/refresh the cache.
   getDashboardData: protectedProcedure.query(async ({ ctx }) => {
     try {
-      // 1. Fetch cached events from Corsair DB
-      let cachedEvents = await ctx.tenant.googlecalendar.db.events.search({ limit: 100 });
+      const cachedEvents = await ctx.tenant.googlecalendar.db.events.search({ limit: 500 });
 
-      // 2. If the cache is empty, do a live API fetch AND use its response directly
-      //    (don't assume the DB is populated synchronously after the API call)
-      if (cachedEvents.length === 0) {
-        const liveResult = await ctx.tenant.googlecalendar.api.events.getMany({
-          calendarId: "primary",
-          timeMin: new Date().toISOString(),
-          maxResults: 50,
-          singleEvents: true,
-          orderBy: "startTime",
-        });
-
-        // Re-fetch from DB now that the API call has seeded it
-        cachedEvents = await ctx.tenant.googlecalendar.db.events.search({ limit: 100 });
-
-        // Fallback: if DB still hasn't caught up, map directly from the live response
-        if (cachedEvents.length === 0 && liveResult.items?.length) {
-          const userNotes = await ctx.db.query.calendarNotes.findMany({
-            where: eq(calendarNotes.userId, ctx.userId),
-          });
-
-          return {
-            events: liveResult.items.map((item) => ({
-              id: item.id ?? "",
-              summary: item.summary || "Untitled Event",
-              start: item.start?.dateTime || item.start?.date || "",
-              end: item.end?.dateTime || item.end?.date || "",
-              note: userNotes.find((n) => n.eventId === item.id)?.note ?? null,
-            })),
-            stats: { todayCount: 0, hoursBlocked: 0 },
-          };
-        }
-      }
-
-      // 3. Fetch local private notes
       const userNotes = await ctx.db.query.calendarNotes.findMany({
         where: eq(calendarNotes.userId, ctx.userId),
       });
@@ -61,16 +28,23 @@ export const calendarRouter = createTRPCRouter({
         const data = event.data;
         return {
           id: event.entity_id,
-          summary: data.summary || "Untitled Event",
-          start: data.start?.dateTime || data.start?.date || "",
-          end: data.end?.dateTime || data.end?.date || "",
+          summary: (data.summary as string) || "Untitled Event",
+          start: (data.start as any)?.dateTime || (data.start as any)?.date || "",
+          end: (data.end as any)?.dateTime || (data.end as any)?.date || "",
           note: userNotes.find((n) => n.eventId === event.entity_id)?.note ?? null,
         };
       });
 
-      // 4. Compute real stats instead of hardcoded zeros
-      const today = new Date().toDateString();
-      const todayEvents = events.filter((e) => e.start && new Date(e.start).toDateString() === today);
+      // Only upcoming events, sorted ascending
+      const now = new Date();
+      const upcomingEvents = events
+        .filter((e) => e.start && new Date(e.start) >= new Date(now.toDateString()))
+        .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+
+      const today = now.toDateString();
+      const todayEvents = upcomingEvents.filter(
+        (e) => e.start && new Date(e.start).toDateString() === today
+      );
       const hoursBlocked = todayEvents.reduce((sum, e) => {
         if (!e.start || !e.end) return sum;
         const ms = new Date(e.end).getTime() - new Date(e.start).getTime();
@@ -78,20 +52,29 @@ export const calendarRouter = createTRPCRouter({
       }, 0);
 
       return {
-        events,
-        stats: { todayCount: todayEvents.length, hoursBlocked: Math.round(hoursBlocked * 10) / 10 },
+        needsSync: cachedEvents.length === 0,
+        events: upcomingEvents,
+        stats: {
+          todayCount: todayEvents.length,
+          hoursBlocked: Math.round(hoursBlocked * 10) / 10,
+        },
       };
     } catch (error: any) {
       const msg = String(error?.message || error);
       if (msg.includes("Account not found") || msg.includes("auth-missing")) {
-        return { events: [], stats: { todayCount: 0, hoursBlocked: 0 } };
+        // Return needsAuth so the UI prompts the connection flow
+        return { needsAuth: true, needsSync: true, events: [], stats: { todayCount: 0, hoursBlocked: 0 } };
       }
       throw error;
     }
   }),
 
+  // Mirrors gmail.syncLatest: hits the live API per-event so Corsair
+  // intercepts each call and stores it in the DB automatically.
+  // After syncing, removes stale events from Corsair_DB that no longer
+  // exist in Google Calendar (i.e., deleted externally).
   syncLatest: protectedProcedure.mutation(async ({ ctx }) => {
-    // Fetch upcoming events from the primary calendar
+    // 1. Get the list of upcoming event IDs from the live API
     const res = await ctx.tenant.googlecalendar.api.events.getMany({
       calendarId: "primary",
       timeMin: new Date().toISOString(),
@@ -99,7 +82,34 @@ export const calendarRouter = createTRPCRouter({
       singleEvents: true,
       orderBy: "startTime",
     });
-    
+
+    // 2. Fetch each event individually — Corsair intercepts every
+    //    events.get call and upserts it into the DB as a side effect,
+    //    exactly the same way gmail.syncLatest does with messages.get.
+    const syncedEventIds = new Set<string>();
+    if (res.items?.length) {
+      await Promise.all(
+        res.items.map((item: any) => {
+          syncedEventIds.add(item.id);
+          return ctx.tenant.googlecalendar.api.events.get({
+            calendarId: "primary",
+            id: item.id,          // docs: param is "id", not "eventId"
+          });
+        })
+      );
+    }
+
+    // 3. Remove stale events from Corsair_DB that were deleted externally.
+    //    Query all cached events and delete any not in the live API response.
+    const cachedEvents = await ctx.tenant.googlecalendar.db.events.search({ limit: 500 });
+    const deletePromises = cachedEvents
+      .filter((event) => !syncedEventIds.has(event.entity_id))
+      .map((event) => ctx.tenant.googlecalendar.db.events.deleteByEntityId(event.entity_id));
+
+    if (deletePromises.length > 0) {
+      await Promise.all(deletePromises);
+    }
+
     return { success: true, count: res.items?.length ?? 0 };
   }),
 

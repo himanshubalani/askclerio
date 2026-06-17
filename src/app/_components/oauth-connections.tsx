@@ -1,98 +1,89 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { api } from "@/trpc/react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Mail01Icon, Calendar01Icon } from "@hugeicons/core-free-icons";
 
 export function GoogleOAuthConnection() {
-  const [isConnecting, setIsConnecting] = useState(false);
-  
-  const generateUrlMutation = api.auth.generateOAuthUrl.useMutation({
-    onSuccess: (result) => {
-      // Open OAuth URL in a popup
-      const popup = window.open(
-        result.url,
-        'oauth-popup',
-        'width=500,height=600,scrollbars=yes,resizable=yes'
-      );
+  const searchParams = useSearchParams();
+  const justConnected = searchParams.get("connected");
 
-      // Listen for OAuth completion
-      const messageHandler = (event: MessageEvent) => {
-        if (event.data.type === 'oauth-success' || event.data.type === 'oauth-error') {
-          setIsConnecting(false);
-          window.removeEventListener('message', messageHandler);
-          popup?.close();
-          
-          if (event.data.type === 'oauth-success') {
-            console.log('Google account connected successfully');
-            // Refetch both connection statuses
-            gmailStatusQuery.refetch();
-            calendarStatusQuery.refetch();
-          } else {
-            console.error('Google connection failed:', event.data.error);
-          }
-        }
-      };
+  const statusQuery = api.auth.checkConnections.useQuery();
 
-      window.addEventListener('message', messageHandler);
-      setIsConnecting(true);
+  // Refresh status after a successful OAuth redirect
+  useEffect(() => {
+    if (justConnected) {
+      statusQuery.refetch();
+    }
+  }, [justConnected, statusQuery]);
 
-      // Handle popup closed manually
-      const checkClosed = setInterval(() => {
-        if (popup?.closed) {
-          clearInterval(checkClosed);
-          setIsConnecting(false);
-          window.removeEventListener('message', messageHandler);
-        }
-      }, 1000);
-    },
-    onError: (error) => {
-      console.error('Failed to generate OAuth URL:', error);
-      setIsConnecting(false);
-    },
-  });
-
-  const gmailStatusQuery = api.auth.checkConnectionStatus.useQuery({ plugin: "gmail" });
-  const calendarStatusQuery = api.auth.checkConnectionStatus.useQuery({ plugin: "googlecalendar" });
-
-  const handleConnect = () => {
-    generateUrlMutation.mutate({ plugin: "gmail" });
-  };
-
-  // Connected if both Gmail and Calendar are connected
-  const isGmailConnected = gmailStatusQuery.data?.connected;
-  const isCalendarConnected = calendarStatusQuery.data?.connected;
-  const isConnected = isGmailConnected && isCalendarConnected;
-  
-  const isLoading = 
-    gmailStatusQuery.isLoading || 
-    calendarStatusQuery.isLoading || 
-    isConnecting || 
-    generateUrlMutation.isPending;
+  const gmailConnected = statusQuery.data?.gmail ?? false;
+  const calendarConnected = statusQuery.data?.calendar ?? false;
+  const isLoading = statusQuery.isLoading;
 
   return (
-    <div className="flex items-center justify-between p-4 border rounded-lg">
-      <div>
-        <h3 className="font-medium">Google Account</h3>
-        <p className="text-sm text-gray-600">Access Gmail and Google Calendar</p>
-        {isConnected && (
-          <div className="text-sm text-green-600 mt-2">
-            <p>✓ Gmail connected as {gmailStatusQuery.data?.email}</p>
-            <p>✓ Calendar ready</p>
+    <div className="flex flex-col gap-3 w-full">
+      {/* Gmail Connection */}
+      <div className="flex items-center justify-between p-4 border border-[#e1e5f2] rounded-xl bg-white shadow-sm">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#bfdbf7]/30 text-[#1f7a8c]">
+             <HugeiconsIcon icon={Mail01Icon} className="h-5 w-5 stroke-2" />
           </div>
+          <div className="text-left">
+            <h3 className="font-semibold text-[#022b3a] text-sm">Gmail</h3>
+            <p className="text-xs text-[#022b3a]/60">
+              Read and manage emails
+            </p>
+          </div>
+        </div>
+
+        {isLoading ? (
+          <div className="h-9 w-24 rounded-lg bg-[#e1e5f2] animate-pulse" />
+        ) : gmailConnected ? (
+          <span className="px-3 py-1.5 rounded-md bg-green-50 text-green-700 text-xs font-medium border border-green-200">
+            Connected
+          </span>
+        ) : (
+          <a
+            href="/api/connect?plugin=gmail"
+            className="px-4 py-2 rounded-lg bg-[#022b3a] text-white text-sm font-medium hover:bg-[#1f7a8c] transition-colors"
+          >
+            Connect
+          </a>
         )}
       </div>
-      
-      <button
-        onClick={handleConnect}
-        disabled={isLoading || isConnected}
-        className={`px-4 py-2 rounded-md text-sm font-medium ${
-          isConnected 
-            ? "bg-green-100 text-green-700 cursor-not-allowed" 
-            : "bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
-        }`}
-      >
-        {isLoading ? "Connecting..." : isConnected ? "Connected" : "Connect"}
-      </button>
+
+      {/* Calendar Connection */}
+      <div className="flex items-center justify-between p-4 border border-[#e1e5f2] rounded-xl bg-white shadow-sm">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#bfdbf7]/30 text-[#1f7a8c]">
+             <HugeiconsIcon icon={Calendar01Icon} className="h-5 w-5 stroke-2" />
+          </div>
+          <div className="text-left">
+            <h3 className="font-semibold text-[#022b3a] text-sm">Google Calendar</h3>
+            <p className="text-xs text-[#022b3a]/60">
+              Manage your schedule
+            </p>
+          </div>
+        </div>
+
+        {isLoading ? (
+          <div className="h-9 w-24 rounded-lg bg-[#e1e5f2] animate-pulse" />
+        ) : calendarConnected ? (
+          <span className="px-3 py-1.5 rounded-md bg-green-50 text-green-700 text-xs font-medium border border-green-200">
+            Connected
+          </span>
+        ) : (
+          <a
+            href="/api/connect?plugin=googlecalendar"
+            className="px-4 py-2 rounded-lg bg-[#022b3a] text-white text-sm font-medium hover:bg-[#1f7a8c] transition-colors"
+          >
+            Connect
+          </a>
+        )}
+      </div>
     </div>
   );
 }
