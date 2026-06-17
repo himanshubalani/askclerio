@@ -14,6 +14,7 @@ export interface MeetingCardProps {
   onSaveNote: (eventId: string, note: string) => void;
   isSaving: boolean;
   saveError: string | null;
+  failedEventId?: string | null;
 }
 
 function formatEventTime(start: string, end: string): string {
@@ -33,16 +34,17 @@ export function MeetingCard({
   onSaveNote,
   isSaving,
   saveError,
+  failedEventId,
 }: MeetingCardProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [draftNote, setDraftNote] = useState(event.note ?? "");
 
   // If saveError is set, keep the textarea open with the draft text
   useEffect(() => {
-    if (saveError && !isEditing) {
+    if (saveError && failedEventId === event.id && !isEditing) {
       setIsEditing(true);
     }
-  }, [saveError, isEditing]);
+  }, [saveError, failedEventId, isEditing, event.id]);
 
   const displayTitle = event.summary
     ? truncateTitle(event.summary, 80)
@@ -104,7 +106,7 @@ export function MeetingCard({
             className="w-full rounded-md border border-[#e1e5f2] p-2 text-sm text-[#022b3a] placeholder:text-[#022b3a]/40 focus:outline-none focus:ring-1 focus:ring-[#1f7a8c] resize-none"
             placeholder="Write a note…"
           />
-          {saveError && (
+          {saveError && failedEventId === event.id && (
             <div className="flex items-center gap-1.5 text-xs text-red-600">
               <HugeiconsIcon
                 icon={AlertCircleIcon}

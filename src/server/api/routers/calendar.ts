@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { calendarNotes } from "@/server/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 
 export interface GoogleCalendarEvent {
   id: string;
@@ -28,7 +28,7 @@ export const calendarRouter = createTRPCRouter({
           id: event.entity_id,
           summary: (data.summary as string) || "Untitled Event",
           start: (data.start as any)?.dateTime || (data.start as any)?.date || "",
-          end: (data.end as any)?.dateTime || (data.end as any)?.date || "",
+          end: (data.end as any)?.dateTime ?? (data.end as any)?.date ??"",
           note: userNotes.find((n) => n.eventId === event.entity_id)?.note ?? null,
         };
       });
@@ -147,9 +147,19 @@ export const calendarRouter = createTRPCRouter({
   saveNote: protectedProcedure
     .input(z.object({ eventId: z.string(), note: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      await ctx.db
-        .insert(calendarNotes)
-        .values({ userId: ctx.userId, eventId: input.eventId, note: input.note })
-        .onConflictDoUpdate({ target: [calendarNotes.id], set: { note: input.note } });
+      // Upsert by (userId, eventId): update if exists, otherwise insert
+      const existing = await ctx.db.query.calendarNotes.findMany({
+        where: and(eq(calendarNotes.userId, ctx.userId), eq(calendarNotes.eventId, input.eventId)),
+        limit: 1,
+      });
+
+      if (existing.length > 0) {
+        await ctx.db
+          .update(calendarNotes)
+          .set({ note: input.note, updatedAt: new Date() })
+          .where(eq(calendarNotes.id, existing[0].id));
+      } else {
+        await ctx.db.insert(calendarNotes).values({ userId: ctx.userId, eventId: input.eventId, note: input.note });
+      }
     }),
 });

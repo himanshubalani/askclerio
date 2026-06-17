@@ -92,10 +92,30 @@ export default function CalendarDashboard() {
 
   const handleSaveNote = useCallback(
     (eventId: string, note: string) => {
-      saveNote.mutate({ eventId, note });
+      // Clear previous failures and set active saving event
+      setFailedEventId(null);
+      setSaveErrorMessage(null);
+      setSavingEventId(eventId);
+
+      saveNote.mutate({ eventId, note }, {
+        onError: (err: any) => {
+          setFailedEventId(eventId);
+          setSaveErrorMessage(err?.message ?? "Save failed");
+          setSavingEventId(null);
+        },
+        onSuccess: () => {
+          setFailedEventId(null);
+          setSaveErrorMessage(null);
+          setSavingEventId(null);
+        },
+      });
     },
     [saveNote]
   );
+
+  const [failedEventId, setFailedEventId] = useState<string | null>(null);
+  const [saveErrorMessage, setSaveErrorMessage] = useState<string | null>(null);
+  const [savingEventId, setSavingEventId] = useState<string | null>(null);
 
   // --- Auth state: show full-screen OAuth prompt ---
   if (needsAuth) {
@@ -265,8 +285,10 @@ export default function CalendarDashboard() {
                 <UpcomingPanel
                   groups={upcomingGroups}
                   onSaveNote={handleSaveNote}
-                  isSaving={saveNote.isPending}
-                  saveError={saveNote.error?.message ?? null}
+                  // pass savingEventId so UpcomingPanel computes per-card loading
+                  savingEventId={savingEventId}
+                  saveError={saveErrorMessage ?? null}
+                  failedEventId={failedEventId}
                 />
               </div>
             </div>

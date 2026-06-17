@@ -8,15 +8,19 @@ import { MeetingCard } from "./meeting-card";
 export interface UpcomingPanelProps {
   groups: DayGroupData[];
   onSaveNote: (eventId: string, note: string) => void;
-  isSaving: boolean;
+  // `savingEventId` indicates which event is currently being saved (if any)
+  savingEventId?: string | null;
+  // Scoped save error message (for the failedEventId)
   saveError: string | null;
+  failedEventId?: string | null;
 }
 
 export function UpcomingPanel({
   groups,
   onSaveNote,
-  isSaving,
+  savingEventId,
   saveError,
+  failedEventId,
 }: UpcomingPanelProps) {
   if (groups.length === 0) {
     return (
@@ -42,14 +46,16 @@ export function UpcomingPanel({
           </h3>
 
           {/* Events for this day */}
-          <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-2">
             {group.events.map((event) => (
               <MeetingCard
                 key={`${group.label}-${event.id}`}
                 event={event}
                 onSaveNote={onSaveNote}
-                isSaving={isSaving}
+                // compute per-card saving state
+                isSaving={savingEventId === event.id}
                 saveError={saveError}
+                failedEventId={failedEventId}
               />
             ))}
           </div>

@@ -5,6 +5,7 @@ import { auth } from '@clerk/nextjs/server';
 import { corsair } from '@/server/corsair';
 
 const REDIRECT_URI = `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/corsair/callback`;
+const ALLOWED_PLUGINS = new Set(["gmail", "googlecalendar"]);
 
 export async function GET(request: NextRequest) {
 
@@ -14,14 +15,21 @@ export async function GET(request: NextRequest) {
     }
 
     const plugin = new URL(request.url).searchParams.get('plugin');
-    if (!plugin) {
-        return NextResponse.json({ error: 'Missing plugin param' }, { status: 400 });
+    if (!plugin || !ALLOWED_PLUGINS.has(plugin)) {
+        return NextResponse.json({ error: 'Invalid plugin param' }, { status: 400 });
     }
 
-    const { url, state } = await generateOAuthUrl(corsair, plugin, {
-        tenantId: userId,
-        redirectUri: REDIRECT_URI,
-    });
+    let url: string;
+    let state: string;
+    try {
+        ({ url, state } = await generateOAuthUrl(corsair, plugin, {
+            tenantId: userId,
+            redirectUri: REDIRECT_URI,
+        }));
+    } catch (err) {
+        console.error('generateOAuthUrl failed for plugin', plugin, err);
+        return NextResponse.json({ error: 'Unable to start OAuth flow' }, { status: 502 });
+    }
 
 
     const response = NextResponse.redirect(url);

@@ -24,11 +24,11 @@ export function ChatInput({ initialValue = "" }: { initialValue?: string }) {
 
   // Handle incoming commands (like Reply/Forward)
   useEffect(() => {
-    if (initialValue) {
-      setText(initialValue);
-      // Slight delay to allow render before focusing
-      setTimeout(() => textareaRef.current?.focus(), 50);
-    }
+    setText(initialValue);
+    if (!initialValue) return;
+    // Slight delay to allow render before focusing
+    const timeoutId = setTimeout(() => textareaRef.current?.focus(), 50);
+    return () => clearTimeout(timeoutId);
   }, [initialValue]);
 
   const handleSubmit = () => {
