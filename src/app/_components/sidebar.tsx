@@ -6,9 +6,11 @@ import { AlertCircleIcon, Calendar01Icon, InboxIcon, Loading02Icon, MoonIcon, Se
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { api } from "@/trpc/react";
+import { useAISidebar } from "@/app/_components/ai-sidebar/provider";
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { toggle } = useAISidebar();
   
   const { data: labels, isLoading: isLoadingLabels } = api.gmail.getLabels.useQuery();
 
@@ -28,7 +30,11 @@ export function Sidebar() {
       
 
       {/* CTA Button */}
-      <button className="mb-8 flex items-center justify-center gap-2 rounded-xl bg-[#022b3a] px-4 py-3 font-medium text-white transition-all hover:bg-[#1f7a8c] hover:shadow-sm active:scale-[0.98]">
+      <button
+        onClick={toggle}
+        aria-label="Toggle AI Assistant"
+        className="mb-8 flex items-center justify-center gap-2 rounded-xl bg-[#022b3a] px-4 py-3 font-medium text-white hover:bg-[#1f7a8c] hover:shadow-[0_2px_8px_rgba(2,43,58,0.12)] active:scale-[0.96] transition-[transform,background-color,box-shadow]"
+      >
         <HugeiconsIcon icon={SparklesIcon} className="h-4 w-4" />
         Ask Clerio
       </button>
@@ -41,7 +47,7 @@ export function Sidebar() {
             <Link
               key={item.name}
               href={item.path}
-              className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+              className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-[color,background-color] ${
                 isActive 
                   ? "bg-[#bfdbf7]/30 text-[#1f7a8c]" 
                   : "text-[#022b3a]/70 hover:bg-[#e1e5f2]/50 hover:text-[#022b3a]"
@@ -65,7 +71,7 @@ export function Sidebar() {
           <Link
             key={label.id}
             href={`/labels/${label.id}`}
-            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors text-[#022b3a]/70 hover:bg-[#e1e5f2]/50 hover:text-[#022b3a]"
+            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-[color,background-color] text-[#022b3a]/70 hover:bg-[#e1e5f2]/50 hover:text-[#022b3a]"
           >
             <HugeiconsIcon icon={Tag01Icon} className="h-4 w-4 stroke-2" />
             <span className="truncate">{label.name}</span>
@@ -77,7 +83,7 @@ export function Sidebar() {
         {/* Calendar */}
         <Link
           href="/u/calendar"
-          className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+          className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-[color,background-color] ${
             pathname.includes("/u/calendar")
               ? "bg-[#bfdbf7]/30 text-[#1f7a8c]" 
               : "text-[#022b3a]/70 hover:bg-[#e1e5f2]/50 hover:text-[#022b3a]"
@@ -90,10 +96,10 @@ export function Sidebar() {
 
       {/* Bottom Actions */}
       <div className="mt-auto flex items-center justify-between pt-4 border-t border-[#e1e5f2]">
-        <button className="rounded-lg p-2 text-[#022b3a]/60 hover:bg-[#e1e5f2]/50 hover:text-[#022b3a] transition-colors">
+        <button className="rounded-lg p-2.5 text-[#022b3a]/60 hover:bg-[#e1e5f2]/50 hover:text-[#022b3a] transition-[color,background-color]">
           <HugeiconsIcon icon={Settings01Icon} className="h-5 w-5" />
         </button>
-        <button className="rounded-lg p-2 text-[#022b3a]/60 hover:bg-[#e1e5f2]/50 hover:text-[#022b3a] transition-colors">
+        <button className="rounded-lg p-2.5 text-[#022b3a]/60 hover:bg-[#e1e5f2]/50 hover:text-[#022b3a] transition-[color,background-color]">
           <HugeiconsIcon icon={MoonIcon} className="h-5 w-5" />
         </button>
       </div>

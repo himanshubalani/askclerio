@@ -113,6 +113,8 @@ export const chatToolCalls = pgTable('askclerio_chat_tool_calls', {
     retryCount: text('retry_count').notNull().default('0'),
     errorMessage: text('error_message'),
     approvalToken: text('approval_token'), // Server-side approval secret (task 10.3)
+    approvalTokenVerifiedAt: timestamp('approval_token_verified_at', { withTimezone: true }),
+    approvedByUserId: text('approved_by_user_id').references(() => users.id),
     startedAt: timestamp('started_at', { withTimezone: true }),
     completedAt: timestamp('completed_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
