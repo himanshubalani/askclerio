@@ -1,4 +1,4 @@
-import { pgTable, text, jsonb, timestamp } from 'drizzle-orm/pg-core';
+import { pgTable, text, jsonb, timestamp, pgEnum, vector } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 
 export const corsairIntegrations = pgTable('corsair_integrations', {
@@ -57,4 +57,62 @@ export const calendarNotes = pgTable('askclerio_calendar_notes', {
     note: text('note').notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+// --- ENUMS ---
+export const roleEnum = pgEnum('chat_message_role', ['user', 'assistant', 'system', 'tool']);
+export const priorityEnum = pgEnum('email_priority', ['high', 'normal', 'low']);
+
+// --- USERS ---
+export const users = pgTable('askclerio_users', {
+    id: text('id').primaryKey().default(sql`gen_random_uuid()`).notNull(),
+    clerkId: text('clerk_id').unique().notNull(),
+    tenantId: text('tenant_id').unique().notNull(), // Links directly to Corsair tenant
+    email: text('email').notNull(),
+    firstName: text('first_name'),
+    lastName: text('last_name'),
+    imageUrl: text('image_url'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+// --- MCP CHAT AGENT TABLES ---
+export const chatConversations = pgTable('askclerio_chat_conversations', {
+    id: text('id').primaryKey().default(sql`gen_random_uuid()`).notNull(),
+    userId: text('user_id').notNull().references(() => users.id),
+    title: text('title').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const chatMessages = pgTable('askclerio_chat_messages', {
+    id: text('id').primaryKey().default(sql`gen_random_uuid()`).notNull(),
+    conversationId: text('conversation_id').notNull().references(() => chatConversations.id),
+    role: roleEnum('role').notNull(),
+    content: text('content').notNull(),
+    toolCalls: jsonb('tool_calls'),     // JSON for Vercel AI SDK MCP tool executions
+    toolResults: jsonb('tool_results'), // Results from the executed tools
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+// --- AI METADATA & VECTOR SEARCH ---
+export const emailAiMeta = pgTable('askclerio_email_ai_meta', {
+    id: text('id').primaryKey().default(sql`gen_random_uuid()`).notNull(),
+    userId: text('user_id').notNull().references(() => users.id),
+    entityId: text('entity_id').unique().notNull(), // Maps to corsair_entities.entity_id
+    threadId: text('thread_id').notNull(),          // Allows mapping AI labels directly into UI thread view
+    priority: priorityEnum('priority').default('normal'),
+    priorityReason: text('priority_reason'),
+    embedding: vector('embedding', { dimensions: 1536 }), // OpenAI standard dimension
+    contentHash: text('content_hash').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const calendarAiMeta = pgTable('askclerio_calendar_ai_meta', {
+    id: text('id').primaryKey().default(sql`gen_random_uuid()`).notNull(),
+    userId: text('user_id').notNull().references(() => users.id),
+    entityId: text('entity_id').unique().notNull(), // Maps to corsair_entities.entity_id
+    embedding: vector('embedding', { dimensions: 1536 }),
+    contentHash: text('content_hash').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
