@@ -1,11 +1,8 @@
-//src\app\(app)\page.tsx
 "use client";
 
-import { useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Loading02Icon, Mail01Icon, MailOpen01Icon } from "@hugeicons/core-free-icons";
+import { Loading02Icon, Mail01Icon } from "@hugeicons/core-free-icons";
 import { ChatInput } from "@/app/_components/chat-input";
-import { MailboxView } from "@/app/_components/mailbox-view";
 import { GoogleOAuthConnection } from "@/app/_components/oauth-connections";
 import { api } from "@/trpc/react";
 import Link from "next/link";
@@ -18,33 +15,24 @@ function formatEmailTime(dateStr: string) {
   return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
 }
 
-export function InboxPage() {
-  return <MailboxView title="Inbox" labelId="INBOX" />;
-}
-
-export default function GmailDashboard() {
-  const { data, isLoading, isFetching, refetch } = api.gmail.getDashboardData.useQuery();
+export function MailboxView({ title, labelId }: { title: string; labelId: string }) {
+  const { data, isLoading, isFetching, refetch } = api.gmail.getDashboardData.useQuery({ labelId });
+  const { data: allLabels } = api.gmail.getLabels.useQuery();
   const utils = api.useUtils();
   
   const syncMutation = api.gmail.syncLatest.useMutation({
     onSuccess: async () => {
-      // Invalidate the dashboard cache so it refetches fresh data
       await utils.gmail.getDashboardData.invalidate();
       await refetch();
     },
     onError: (error) => {
-      console.error("Failed to sync latest emails:", error);
+      console.error(`Failed to sync latest emails for ${labelId}:`, error);
     },
   });
 
-  const markAsRead = api.gmail.markRead.useMutation({
-  onSuccess: () => utils.gmail.getDashboardData.invalidate(),
-});
-const markAsUnread = api.gmail.markUnread.useMutation({
-  onSuccess: () => utils.gmail.getDashboardData.invalidate(),
-});
+  // Dynamically resolve the real label name if it's a custom user label (e.g. "Label_78349...")
+  const displayTitle = allLabels?.find(l => l.id === labelId)?.name || title;
 
-  // 1. If not synced yet, show the Connect screen
   if (data?.needsAuth) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center bg-[#fcfcfc] antialiased">
@@ -70,14 +58,14 @@ const markAsUnread = api.gmail.markUnread.useMutation({
       <div className="flex-1 max-w-320 overflow-y-auto px-8 py-8 antialiased">
         <header className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-semibold text-[#022b3a] text-balance">Inbox</h1>
+            <h1 className="text-2xl font-semibold text-[#022b3a] text-balance">{displayTitle}</h1>
             <p className="text-sm text-[#022b3a]/60 text-pretty mt-1 tabular-nums">
               {isLoading ? "Loading..." : `${data?.threads?.length || 0} recent threads`}
             </p>
           </div>
           <div className="flex gap-2">
             <button 
-              onClick={() => syncMutation.mutate()}
+              onClick={() => syncMutation.mutate({ labelId })}
               disabled={syncMutation.isPending || isFetching}
               className="flex items-center gap-2 rounded-md border border-[#e1e5f2] px-3 py-1.5 text-sm font-medium text-[#022b3a] hover:bg-[#fcfcfc] transition-colors shadow-sm disabled:opacity-50"
             >
@@ -101,31 +89,6 @@ const markAsUnread = api.gmail.markUnread.useMutation({
           </div>
         ) : (
           <div className="flex flex-col gap-6">
-            {/* Labels Section */}
-            {data?.labels && data.labels.length > 0 && (
-              <div>
-                <h3 className="text-sm font-semibold text-[#022b3a]/60 mb-3">Labels</h3>
-                <div className="flex flex-wrap gap-2">
-                  {data.labels.map((label: any) => (
-                    <span
-                      key={label.id}
-                      className={`px-2.5 py-1 rounded-full text-xs font-medium border ${
-                        label.name === "IMPORTANT"
-                          ? "bg-red-50 border-red-200 text-red-700"
-                          : label.name === "STARRED"
-                          ? "bg-yellow-50 border-yellow-200 text-yellow-700"
-                          : label.name === "SENT"
-                          ? "bg-blue-50 border-blue-200 text-blue-700"
-                          : "bg-gray-50 border-gray-200 text-gray-700"
-                      }`}
-                    >
-                      {label.name}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-
             <div className="flex flex-col gap-2">
               {data?.threads?.map((thread, i) => {
               const isUnread = thread.labels.includes("UNREAD");
@@ -155,25 +118,6 @@ const markAsUnread = api.gmail.markUnread.useMutation({
                       📝 Note attached
                     </span>
                   )}
-                  <button
-  onClick={(e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (isUnread) {
-      markAsRead.mutate({ threadId: thread.id });
-    } else {
-      markAsUnread.mutate({ threadId: thread.id });
-    }
-  }}
-  disabled={markAsRead.isPending || markAsUnread.isPending}
-  title={isUnread ? "Mark as read" : "Mark as unread"}
-  className="shrink-0 flex items-center justify-center rounded-md p-1.5 text-[#022b3a]/40 hover:text-[#1f7a8c] hover:bg-[#bfdbf7]/20 transition-colors disabled:opacity-40"
->
-  <HugeiconsIcon
-    icon={isUnread ? MailOpen01Icon : Mail01Icon}
-    className="h-4 w-4 stroke-2"
-  />
-</button>
                   <div className={`text-xs tabular-nums text-right w-16 ${isUnread ? "font-bold text-[#1f7a8c]" : "font-medium text-[#022b3a]/50"}`}>
                     {formatEmailTime(thread.date)}
                   </div>
@@ -184,7 +128,7 @@ const markAsUnread = api.gmail.markUnread.useMutation({
 
             {data?.threads?.length === 0 && (
               <div className="text-center py-12 text-[#022b3a]/50">
-                No emails found in the local cache. Please sync your account or wait for webhooks.
+                No emails found in the local cache. Please hit Sync to pull from Gmail.
               </div>
             )}
           </div>

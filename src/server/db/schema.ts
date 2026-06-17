@@ -1,6 +1,5 @@
-import { pgTable, text, jsonb, timestamp, pgEnum } from 'drizzle-orm/pg-core';
+import { pgTable, text, jsonb, timestamp, pgEnum, vector } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
-import { vector } from 'drizzle-orm/pgvector';
 
 export const corsairIntegrations = pgTable('corsair_integrations', {
     id: text('id').primaryKey().notNull(),

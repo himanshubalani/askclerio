@@ -8,7 +8,7 @@ import { conn } from './db';
 
 
 export const corsair = createCorsair({
-    plugins: [github(), gmail(), googlecalendar()],
+    plugins: [ gmail({ authType: "oauth_2"}), googlecalendar( { authType: "oauth_2"}) ],
     database: conn,
     kek: process.env.CORSAIR_KEK!,
     multiTenancy: true,
