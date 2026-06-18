@@ -2,7 +2,7 @@
 
 > A keyboard-first command center for Gmail and Google Calendar, powered by [Corsair](https://corsair.dev).
 
-Built for the **Corsair LiveCommand Inbox Hackathon** (12 Jun – 18 Jun 2026).
+Built for the **Command Inbox: Corsair Hackathon** by ChaiCode (12 Jun – 18 Jun 2026).
 
 ---
 
