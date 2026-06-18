@@ -1,3 +1,4 @@
+// src/app/(app)/u/calendar/_components/upcoming-panel.tsx
 "use client";
 
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -8,11 +9,11 @@ import { MeetingCard } from "./meeting-card";
 export interface UpcomingPanelProps {
   groups: DayGroupData[];
   onSaveNote: (eventId: string, note: string) => void;
-  // `savingEventId` indicates which event is currently being saved (if any)
   savingEventId?: string | null;
-  // Scoped save error message (for the failedEventId)
   saveError: string | null;
   failedEventId?: string | null;
+  onDeleteEvent: (eventId: string) => void;
+  deletingEventId?: string | null;
 }
 
 export function UpcomingPanel({
@@ -21,6 +22,8 @@ export function UpcomingPanel({
   savingEventId,
   saveError,
   failedEventId,
+  onDeleteEvent,
+  deletingEventId,
 }: UpcomingPanelProps) {
   if (groups.length === 0) {
     return (
@@ -40,22 +43,21 @@ export function UpcomingPanel({
     <div className="flex flex-col gap-6">
       {groups.map((group) => (
         <div key={group.label}>
-          {/* Day header */}
           <h3 className="mb-3 text-sm font-semibold text-[#022b3a]">
             {group.label}
           </h3>
 
-          {/* Events for this day */}
-            <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2">
             {group.events.map((event) => (
               <MeetingCard
                 key={`${group.label}-${event.id}`}
                 event={event}
                 onSaveNote={onSaveNote}
-                // compute per-card saving state
                 isSaving={savingEventId === event.id}
                 saveError={saveError}
                 failedEventId={failedEventId}
+                onDeleteEvent={onDeleteEvent}
+                isDeleting={deletingEventId === event.id}
               />
             ))}
           </div>

@@ -1,7 +1,9 @@
+// src/app/_components/mailbox-view.tsx
 "use client";
 
+import { useState, useMemo } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Loading02Icon, Mail01Icon } from "@hugeicons/core-free-icons";
+import { Loading02Icon, Mail01Icon, Search01Icon } from "@hugeicons/core-free-icons";
 import { ChatInput } from "@/app/_components/chat-input";
 import { GoogleOAuthConnection } from "@/app/_components/oauth-connections";
 import { api } from "@/trpc/react";
@@ -20,6 +22,8 @@ export function MailboxView({ title, labelId }: { title: string; labelId: string
   const { data: allLabels } = api.gmail.getLabels.useQuery();
   const utils = api.useUtils();
   
+  const [searchQuery, setSearchQuery] = useState("");
+  
   const syncMutation = api.gmail.syncLatest.useMutation({
     onSuccess: async () => {
       await utils.gmail.getDashboardData.invalidate();
@@ -29,6 +33,17 @@ export function MailboxView({ title, labelId }: { title: string; labelId: string
       console.error(`Failed to sync latest emails for ${labelId}:`, error);
     },
   });
+
+  const filteredThreads = useMemo(() => {
+    if (!data?.threads) return [];
+    if (!searchQuery.trim()) return data.threads;
+    const lowerQuery = searchQuery.toLowerCase();
+    return data.threads.filter((t) =>
+      t.subject?.toLowerCase().includes(lowerQuery) ||
+      t.sender?.toLowerCase().includes(lowerQuery) ||
+      t.snippet?.toLowerCase().includes(lowerQuery)
+    );
+  }, [data?.threads, searchQuery]);
 
   // Dynamically resolve the real label name if it's a custom user label (e.g. "Label_78349...")
   const displayTitle = allLabels?.find(l => l.id === labelId)?.name || title;
@@ -56,18 +71,28 @@ export function MailboxView({ title, labelId }: { title: string; labelId: string
   return (
     <>
       <div className="flex-1 max-w-320 overflow-y-auto px-8 py-8 antialiased">
-        <header className="mb-8 flex items-center justify-between">
+        <header className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-semibold text-[#022b3a] text-balance">{displayTitle}</h1>
             <p className="text-sm text-[#022b3a]/60 text-pretty mt-1 tabular-nums">
               {isLoading ? "Loading..." : `${data?.threads?.length || 0} recent threads`}
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="relative flex items-center mr-2">
+              <HugeiconsIcon icon={Search01Icon} className="absolute left-3 h-4 w-4 text-[#022b3a]/40" />
+              <input
+                type="text"
+                placeholder="Search emails..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="h-9 w-full md:w-64 rounded-md border border-[#e1e5f2] bg-white pl-9 pr-3 text-sm text-[#022b3a] placeholder:text-[#022b3a]/40 focus:border-[#1f7a8c] focus:outline-none focus:ring-1 focus:ring-[#1f7a8c] transition-[border-color,box-shadow] shadow-sm"
+              />
+            </div>
             <button 
               onClick={() => syncMutation.mutate({ labelId })}
               disabled={syncMutation.isPending || isFetching}
-              className="flex items-center gap-2 rounded-md border border-[#e1e5f2] px-3 py-1.5 text-sm font-medium text-[#022b3a] hover:bg-[#fcfcfc] transition-colors shadow-sm disabled:opacity-50"
+              className="flex items-center gap-2 rounded-md border border-[#e1e5f2] bg-white px-3 py-1.5 text-sm font-medium text-[#022b3a] hover:bg-[#fcfcfc] transition-[background-color] shadow-sm disabled:opacity-50 h-9"
             >
               {syncMutation.isPending && <HugeiconsIcon icon={Loading02Icon} className="h-3 w-3 animate-spin" />}
               {syncMutation.isPending ? "Syncing..." : "Sync"}
@@ -75,7 +100,7 @@ export function MailboxView({ title, labelId }: { title: string; labelId: string
             <button 
               onClick={() => refetch()}
               disabled={isFetching || syncMutation.isPending}
-              className="flex items-center gap-2 rounded-md border border-[#e1e5f2] px-3 py-1.5 text-sm font-medium text-[#022b3a] hover:bg-[#fcfcfc] transition-colors shadow-sm disabled:opacity-50"
+              className="flex items-center gap-2 rounded-md border border-[#e1e5f2] bg-white px-3 py-1.5 text-sm font-medium text-[#022b3a] hover:bg-[#fcfcfc] transition-[background-color] shadow-sm disabled:opacity-50 h-9"
             >
               {isFetching && <HugeiconsIcon icon={Loading02Icon} className="h-3 w-3 animate-spin" />}
               {isFetching ? "Refreshing..." : "Refresh"}
@@ -90,14 +115,14 @@ export function MailboxView({ title, labelId }: { title: string; labelId: string
         ) : (
           <div className="flex flex-col gap-6">
             <div className="flex flex-col gap-2">
-              {data?.threads?.map((thread, i) => {
+              {filteredThreads.map((thread, i) => {
               const isUnread = thread.labels.includes("UNREAD");
               
               return (
                 <Link 
                   href={`/thread/${thread.id}`}
                   key={thread.id} 
-                  className={`flex items-center gap-4 rounded-xl border p-4 transition-all hover:border-[#bfdbf7] hover:shadow-[0_2px_8px_rgba(2,43,58,0.04)] animate-in fade-in slide-in-from-bottom-4 fill-mode-backwards
+                  className={`flex items-center gap-4 rounded-xl border p-4 transition-[border-color,box-shadow] hover:border-[#bfdbf7] hover:shadow-[0_2px_8px_rgba(2,43,58,0.04)] animate-in fade-in slide-in-from-bottom-4 fill-mode-backwards
                     ${isUnread ? "bg-white border-[#e1e5f2]" : "bg-[#fcfcfc]/50 border-transparent"}
                   `}
                   style={{ animationDelay: `${Math.min(i * 30, 500)}ms` }}
@@ -126,18 +151,21 @@ export function MailboxView({ title, labelId }: { title: string; labelId: string
               })}
             </div>
 
-            {data?.threads?.length === 0 && (
+            {data?.threads && data.threads.length === 0 && (
               <div className="text-center py-12 text-[#022b3a]/50">
                 No emails found in the local cache. Please hit Sync to pull from Gmail.
+              </div>
+            )}
+            
+            {data?.threads && data.threads.length > 0 && filteredThreads.length === 0 && (
+              <div className="text-center py-12 text-[#022b3a]/50">
+                No emails match your search "{searchQuery}".
               </div>
             )}
           </div>
         )}
       </div>
 
-      <div className="shrink-0 bg-gradient-to-t from-white via-white to-transparent pt-4">
-        <ChatInput />
-      </div>
     </>
   );
 }

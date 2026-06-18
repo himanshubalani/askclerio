@@ -1,4 +1,4 @@
-import { pgTable, text, jsonb, timestamp, pgEnum, vector } from 'drizzle-orm/pg-core';
+import { pgTable, text, jsonb, timestamp, pgEnum, vector, index } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 
 export const corsairIntegrations = pgTable('corsair_integrations', {
@@ -62,6 +62,10 @@ export const calendarNotes = pgTable('askclerio_calendar_notes', {
 // --- ENUMS ---
 export const roleEnum = pgEnum('chat_message_role', ['user', 'assistant', 'system', 'tool']);
 export const priorityEnum = pgEnum('email_priority', ['high', 'normal', 'low']);
+export const toolCallStatusEnum = pgEnum('tool_call_status', [
+    'draft', 'awaiting_confirmation', 'running', 'done', 'cancelled', 'failed'
+]);
+export const toolTrustModeEnum = pgEnum('tool_trust_mode', ['ask_every_time', 'auto_run']);
 
 // --- USERS ---
 export const users = pgTable('askclerio_users', {
@@ -95,6 +99,38 @@ export const chatMessages = pgTable('askclerio_chat_messages', {
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
+// --- TOOL CALL AUDIT TRAIL ---
+export const chatToolCalls = pgTable('askclerio_chat_tool_calls', {
+    id: text('id').primaryKey().default(sql`gen_random_uuid()`).notNull(),
+    messageId: text('message_id').notNull().references(() => chatMessages.id),
+    conversationId: text('conversation_id').notNull().references(() => chatConversations.id),
+    toolName: text('tool_name').notNull(),
+    toolCallId: text('tool_call_id').notNull(), // AI SDK tool call ID
+    parameters: jsonb('parameters').notNull().default({}),
+    editedParameters: jsonb('edited_parameters'), // User-edited params (if any)
+    result: jsonb('result'),
+    status: toolCallStatusEnum('status').notNull().default('draft'),
+    retryCount: text('retry_count').notNull().default('0'),
+    errorMessage: text('error_message'),
+    approvalToken: text('approval_token'), // Server-side approval secret (task 10.3)
+    approvalTokenVerifiedAt: timestamp('approval_token_verified_at', { withTimezone: true }),
+    approvedByUserId: text('approved_by_user_id').references(() => users.id),
+    startedAt: timestamp('started_at', { withTimezone: true }),
+    completedAt: timestamp('completed_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+// --- PER-USER PER-TOOL TRUST CONFIGURATION ---
+export const chatToolSettings = pgTable('askclerio_chat_tool_settings', {
+    id: text('id').primaryKey().default(sql`gen_random_uuid()`).notNull(),
+    userId: text('user_id').notNull().references(() => users.id),
+    toolName: text('tool_name').notNull(),
+    trustMode: toolTrustModeEnum('trust_mode').notNull().default('ask_every_time'),
+    classification: text('classification').notNull().default('write'), // 'read' | 'write'
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
 // --- AI METADATA & VECTOR SEARCH ---
 export const emailAiMeta = pgTable('askclerio_email_ai_meta', {
     id: text('id').primaryKey().default(sql`gen_random_uuid()`).notNull(),
@@ -116,3 +152,33 @@ export const calendarAiMeta = pgTable('askclerio_calendar_ai_meta', {
     contentHash: text('content_hash').notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
+
+
+// --- TENANT MCP KEYS ---
+export const tenantMcpKeys = pgTable('askclerio_tenant_mcp_keys', {
+    id: text('id').primaryKey().default(sql`gen_random_uuid()`).notNull(),
+    tenantId: text('tenant_id').notNull().unique().references(() => users.tenantId),
+    encryptedSecret: text('encrypted_secret').notNull(),
+    mcpHttpUrl: text('mcp_http_url').notNull(),
+    keyLabel: text('key_label').notNull().default('clerio-sidebar'),
+    expiresAt: timestamp('expires_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    rotatedAt: timestamp('rotated_at', { withTimezone: true }),
+});
+
+// --- STRUCTURED WRITE LOG ---
+export const structuredWriteLog = pgTable('askclerio_structured_write_log', {
+    id: text('id').primaryKey().default(sql`gen_random_uuid()`).notNull(),
+    tenantId: text('tenant_id').notNull(),
+    approvingUserId: text('approving_user_id'),
+    operationPath: text('operation_path').notNull(),
+    executedAt: timestamp('executed_at', { withTimezone: true }).notNull().defaultNow(),
+    toolCallId: text('tool_call_id').notNull(),
+    status: text('status').notNull(), // 'executed' | 'rejected' | 'rate_limited'
+    recipientAddress: text('recipient_address'),
+    eventTitle: text('event_title'),
+    eventStartTime: text('event_start_time'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (table) => ({
+    tenantExecutedAtIdx: index('idx_write_log_tenant_time').on(table.tenantId, table.executedAt),
+}));

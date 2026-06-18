@@ -1,11 +1,14 @@
+// src/app/(app)/u/calendar/_components/todays-agenda.tsx
 "use client";
 
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Calendar01Icon } from "@hugeicons/core-free-icons";
+import { Calendar01Icon, Delete02Icon, Loading02Icon } from "@hugeicons/core-free-icons";
 import { type AgendaItemData, truncateTitle } from "../_lib/dashboard-utils";
 
 export interface TodaysAgendaProps {
   events: AgendaItemData[];
+  onDeleteEvent: (eventId: string) => void;
+  deletingEventId?: string | null;
 }
 
 function formatTimeRange(start: string, end: string): string {
@@ -20,7 +23,7 @@ function formatTimeRange(start: string, end: string): string {
   return `${startStr} – ${endStr}`;
 }
 
-export function TodaysAgenda({ events }: TodaysAgendaProps) {
+export function TodaysAgenda({ events, onDeleteEvent, deletingEventId }: TodaysAgendaProps) {
   if (events.length === 0) {
     return (
       <div className="rounded-2xl border border-dashed border-[#e1e5f2] bg-white p-6 text-center">
@@ -44,7 +47,7 @@ export function TodaysAgenda({ events }: TodaysAgendaProps) {
         return (
           <div
             key={event.id}
-            className="flex items-start gap-3 rounded-xl border border-[#e1e5f2] bg-white p-3 transition-colors hover:border-[#1f7a8c]/30"
+            className="flex items-start gap-3 rounded-xl border border-[#e1e5f2] bg-white p-3 transition-colors hover:border-[#1f7a8c]/30 group"
           >
             <div className="shrink-0 pt-0.5">
               {event.isAllDay ? (
@@ -57,9 +60,25 @@ export function TodaysAgenda({ events }: TodaysAgendaProps) {
                 </span>
               )}
             </div>
-            <span className="text-sm font-medium text-[#022b3a] text-pretty">
+            <span className="text-sm font-medium text-[#022b3a] text-pretty flex-1 pt-0.5">
               {displayTitle}
             </span>
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onDeleteEvent(event.id);
+              }}
+              disabled={deletingEventId === event.id}
+              title="Delete meeting"
+              className="shrink-0 rounded-md p-1.5 text-[#022b3a]/30 hover:bg-red-50 hover:text-red-600 transition-all disabled:opacity-50"
+            >
+              {deletingEventId === event.id ? (
+                <HugeiconsIcon icon={Loading02Icon} className="h-4 w-4 animate-spin text-[#022b3a]/40" />
+              ) : (
+                <HugeiconsIcon icon={Delete02Icon} className="h-4 w-4" />
+              )}
+            </button>
           </div>
         );
       })}

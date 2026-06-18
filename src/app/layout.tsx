@@ -27,12 +27,12 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
               <div className="flex items-center gap-3">
                 <Show when="signed-out">
                   <SignInButton>
-                    <button className="text-sm font-medium text-[#022b3a] hover:text-[#1f7a8c] transition-colors px-3 py-2 rounded-lg hover:bg-[#f0f7ff] cursor-pointer">
+                    <button className="text-sm font-medium text-[#022b3a] hover:text-[#1f7a8c] px-3 py-2 rounded-lg hover:bg-[#f0f7ff] cursor-pointer transition-[color,background-color]">
                       Sign In
                     </button>
                   </SignInButton>
                   <SignUpButton>
-                    <button className="bg-[#022b3a] hover:bg-[#1f7a8c] text-white rounded-lg font-medium text-sm h-9 px-4 cursor-pointer transition-colors">
+                    <button className="bg-[#022b3a] hover:bg-[#1f7a8c] text-white rounded-lg font-medium text-sm h-9 px-4 cursor-pointer active:scale-[0.96] transition-[transform,background-color]">
                       Get Started
                     </button>
                   </SignUpButton>

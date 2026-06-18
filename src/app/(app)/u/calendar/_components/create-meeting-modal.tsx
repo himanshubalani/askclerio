@@ -103,7 +103,7 @@ export function CreateMeetingModal({
       aria-modal="true"
       aria-labelledby="create-meeting-title"
     >
-      <div className="w-full max-w-lg rounded-xl border border-[#e1e5f2] bg-[#fcfcfc] shadow-xl">
+      <div className="w-full max-w-lg rounded-2xl bg-[#fcfcfc] shadow-[0_24px_64px_rgba(2,43,58,0.16),0_8px_24px_rgba(2,43,58,0.08),0_2px_8px_rgba(2,43,58,0.04)]">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-[#e1e5f2] px-6 py-4">
           <h2
@@ -114,7 +114,7 @@ export function CreateMeetingModal({
           </h2>
           <button
             onClick={onClose}
-            className="rounded-md p-1 text-[#022b3a]/60 transition-colors hover:bg-[#e1e5f2]/50 hover:text-[#022b3a]"
+            className="rounded-md p-1 text-[#022b3a]/60 transition-[color,background-color] hover:bg-[#e1e5f2]/50 hover:text-[#022b3a]"
             aria-label="Close modal"
           >
             <HugeiconsIcon icon={Cancel01Icon} className="h-5 w-5" />
@@ -277,14 +277,14 @@ export function CreateMeetingModal({
             <button
               type="button"
               onClick={onClose}
-              className="rounded-md border border-[#e1e5f2] px-4 py-2 text-sm font-medium text-[#022b3a]/60 transition-colors hover:text-[#022b3a] hover:bg-[#e1e5f2]/50"
+              className="rounded-md border border-[#e1e5f2] px-4 py-2 text-sm font-medium text-[#022b3a]/60 transition-[color,background-color] hover:text-[#022b3a] hover:bg-[#e1e5f2]/50"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isPending}
-              className="rounded-md bg-[#1f7a8c] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#022b3a] disabled:opacity-50 disabled:cursor-not-allowed"
+              className="rounded-md bg-[#1f7a8c] px-4 py-2 text-sm font-medium text-white transition-[transform,background-color] hover:bg-[#022b3a] active:scale-[0.96] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isPending ? "Creating…" : "Create Meeting"}
             </button>

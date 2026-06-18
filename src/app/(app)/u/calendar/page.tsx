@@ -1,3 +1,4 @@
+// src/app/(app)/u/calendar/page.tsx
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
@@ -31,6 +32,7 @@ export default function CalendarDashboard() {
     syncLatest,
     createEvent,
     saveNote,
+    deleteEvent,
   } = useCalendarDashboard();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -42,7 +44,6 @@ export default function CalendarDashboard() {
   const handleSync = useCallback(() => {
     setSyncTimedOut(false);
 
-    // Clear any existing timeout
     if (syncTimeoutRef.current) {
       clearTimeout(syncTimeoutRef.current);
     }
@@ -62,14 +63,12 @@ export default function CalendarDashboard() {
       },
     });
 
-    // Set 30s timeout
     syncTimeoutRef.current = setTimeout(() => {
       setSyncTimedOut(true);
       syncTimeoutRef.current = null;
     }, 30_000);
   }, [syncLatest]);
 
-  // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
       if (syncTimeoutRef.current) {
@@ -92,7 +91,6 @@ export default function CalendarDashboard() {
 
   const handleSaveNote = useCallback(
     (eventId: string, note: string) => {
-      // Clear previous failures and set active saving event
       setFailedEventId(null);
       setSaveErrorMessage(null);
       setSavingEventId(eventId);
@@ -116,8 +114,25 @@ export default function CalendarDashboard() {
   const [failedEventId, setFailedEventId] = useState<string | null>(null);
   const [saveErrorMessage, setSaveErrorMessage] = useState<string | null>(null);
   const [savingEventId, setSavingEventId] = useState<string | null>(null);
+  
+  // Track deleting state to show loading spinners on the correct event
+  const [deletingEventId, setDeletingEventId] = useState<string | null>(null);
 
-  // --- Auth state: show full-screen OAuth prompt ---
+  const handleDeleteEvent = useCallback(
+    (eventId: string) => {
+      if (window.confirm("Are you sure you want to delete this meeting?")) {
+        setDeletingEventId(eventId);
+        deleteEvent.mutate(
+          { eventId },
+          {
+            onSettled: () => setDeletingEventId(null),
+          }
+        );
+      }
+    },
+    [deleteEvent]
+  );
+
   if (needsAuth) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center bg-[#fcfcfc] antialiased">
@@ -145,13 +160,12 @@ export default function CalendarDashboard() {
   return (
     <>
       <div className="flex-1 overflow-y-auto px-8 py-8 antialiased">
-        {/* Dashboard Header */}
         <header className="mb-6 flex items-center justify-between">
           <h1 className="text-2xl font-semibold text-[#022b3a]">Calendar</h1>
           <div className="flex items-center gap-3">
             <button
               onClick={() => setIsModalOpen(true)}
-              className="flex items-center gap-1.5 rounded-lg bg-[#1f7a8c] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#022b3a]"
+              className="flex items-center gap-1.5 rounded-lg bg-[#1f7a8c] px-4 py-2 text-sm font-medium text-white transition-[transform,background-color] hover:bg-[#022b3a] active:scale-[0.96]"
             >
               <HugeiconsIcon icon={Add01Icon} className="h-4 w-4" />
               Create Meeting
@@ -163,7 +177,6 @@ export default function CalendarDashboard() {
           </div>
         </header>
 
-        {/* Sync timeout error */}
         {syncTimedOut && (
           <div className="mb-4 flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3">
             <HugeiconsIcon
@@ -176,7 +189,6 @@ export default function CalendarDashboard() {
           </div>
         )}
 
-        {/* Sync error */}
         {syncLatest.error && !syncTimedOut && (
           <div className="mb-4 flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3">
             <HugeiconsIcon
@@ -189,7 +201,6 @@ export default function CalendarDashboard() {
           </div>
         )}
 
-        {/* Data loading error */}
         {error && (
           <div className="mb-4 flex items-center gap-2 rounded-lg border border-[#e1e5f2] bg-white px-4 py-3">
             <HugeiconsIcon
@@ -203,7 +214,6 @@ export default function CalendarDashboard() {
           </div>
         )}
 
-        {/* Needs sync prompt */}
         {!isLoading && needsSync && (
           <div className="mb-6 flex items-center justify-between rounded-xl border border-dashed border-[#e1e5f2] bg-white p-4">
             <p className="text-sm text-[#022b3a]/60">
@@ -213,17 +223,15 @@ export default function CalendarDashboard() {
             <button
               onClick={handleSync}
               disabled={syncLatest.isPending}
-              className="ml-4 flex shrink-0 items-center gap-1.5 rounded-lg bg-[#022b3a] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#1f7a8c] disabled:opacity-50"
+              className="ml-4 flex shrink-0 items-center gap-1.5 rounded-lg bg-[#022b3a] px-4 py-2 text-sm font-medium text-white transition-[transform,background-color] hover:bg-[#1f7a8c] active:scale-[0.96] disabled:opacity-50"
             >
               {syncLatest.isPending ? "Syncing…" : "Sync now"}
             </button>
           </div>
         )}
 
-        {/* Loading skeleton */}
         {isLoading && (
           <div className="space-y-6">
-            {/* Stats skeleton */}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {[0, 1, 2, 3].map((i) => (
                 <div
@@ -232,7 +240,6 @@ export default function CalendarDashboard() {
                 />
               ))}
             </div>
-            {/* Content skeleton */}
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
               <div className="space-y-3">
                 {[0, 1, 2].map((i) => (
@@ -254,10 +261,8 @@ export default function CalendarDashboard() {
           </div>
         )}
 
-        {/* Main content (shown when not loading) */}
         {!isLoading && (
           <>
-            {/* Stats Row */}
             <div className="mb-6">
               <StatsRow
                 todayCount={stats.todayCount}
@@ -267,17 +272,18 @@ export default function CalendarDashboard() {
               />
             </div>
 
-            {/* Two-column layout */}
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-              {/* Left column: Today's Agenda */}
               <div>
                 <h2 className="mb-3 text-sm font-bold uppercase tracking-wider text-[#022b3a]/50">
                   Today&apos;s Agenda
                 </h2>
-                <TodaysAgenda events={todayEvents} />
+                <TodaysAgenda 
+                  events={todayEvents} 
+                  onDeleteEvent={handleDeleteEvent}
+                  deletingEventId={deletingEventId}
+                />
               </div>
 
-              {/* Right column: Upcoming Panel */}
               <div>
                 <h2 className="mb-3 text-sm font-bold uppercase tracking-wider text-[#022b3a]/50">
                   Upcoming Events
@@ -285,10 +291,11 @@ export default function CalendarDashboard() {
                 <UpcomingPanel
                   groups={upcomingGroups}
                   onSaveNote={handleSaveNote}
-                  // pass savingEventId so UpcomingPanel computes per-card loading
                   savingEventId={savingEventId}
                   saveError={saveErrorMessage ?? null}
                   failedEventId={failedEventId}
+                  onDeleteEvent={handleDeleteEvent}
+                  deletingEventId={deletingEventId}
                 />
               </div>
             </div>
@@ -296,12 +303,6 @@ export default function CalendarDashboard() {
         )}
       </div>
 
-      {/* ChatInput pinned at the bottom */}
-      <div className="shrink-0 bg-white">
-        <ChatInput />
-      </div>
-
-      {/* Create Meeting Modal */}
       <CreateMeetingModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

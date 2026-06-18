@@ -4,7 +4,7 @@ import { withSentryConfig } from "@sentry/nextjs";
 /** @type {import("next").NextConfig} */
 const config = {
   allowedDevOrigins: ['korey-hydrometric-soughfully.ngrok-free.dev', 'http://localhost'],
-  serverExternalPackages: ['import-in-the-middle', 'require-in-the-middle'],
+  serverExternalPackages: ['import-in-the-middle', 'require-in-the-middle', 'express', '@corsair-dev/mcp'],
 };
 
 export default withSentryConfig(config, {

@@ -144,6 +144,44 @@ export const calendarRouter = createTRPCRouter({
       return await ctx.tenant.googlecalendar.api.events.create({ calendarId, event });
     }),
 
+      deleteEvent: protectedProcedure
+    .input(
+      z.object({
+        eventId: z.string(),
+        calendarId: z.string().default("primary"),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { eventId, calendarId } = input;
+
+      // 1. Delete the event from the live Google Calendar API
+      await ctx.tenant.googlecalendar.api.events.delete({
+        calendarId,
+        id: eventId,
+      });
+
+      // 2. Remove the event from the Corsair DB cache
+      try {
+        await ctx.tenant.googlecalendar.db.events.deleteByEntityId(eventId);
+      } catch (cacheError) {
+        // Silently catch cache misses so execution isn't blocked
+        console.error("Corsair cache deletion skipped or failed:", cacheError);
+      }
+
+      // 3. Clean up local calendar notes from Drizzle DB
+      await ctx.db
+        .delete(calendarNotes)
+        .where(
+          and(
+            eq(calendarNotes.userId, ctx.userId),
+            eq(calendarNotes.eventId, eventId)
+          )
+        );
+
+      return { success: true };
+    }),
+
+
   saveNote: protectedProcedure
     .input(z.object({ eventId: z.string(), note: z.string() }))
     .mutation(async ({ ctx, input }) => {
