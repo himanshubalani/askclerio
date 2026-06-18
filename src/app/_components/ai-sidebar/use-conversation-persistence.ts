@@ -7,7 +7,7 @@ import { api } from "@/trpc/react";
  * Truncates a string to create a conversation title.
  * If the string exceeds maxLen, it's cut and an ellipsis is appended.
  */
-export function generateTitle(message: string, maxLen: number = 80): string {
+export function generateTitle(message: string, maxLen = 80): string {
   const trimmed = message.trim();
   if (trimmed.length <= maxLen) return trimmed;
   return trimmed.slice(0, maxLen - 1) + "…";

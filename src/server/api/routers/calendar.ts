@@ -11,6 +11,20 @@ export interface GoogleCalendarEvent {
   note: string | null;
 }
 
+interface GoogleEventTime {
+  dateTime?: string;
+  date?: string;
+  timeZone?: string;
+}
+
+interface GoogleCalendarEventData {
+  id?: string;
+  summary?: string;
+  start?: GoogleEventTime;
+  end?: GoogleEventTime;
+  [key: string]: unknown;
+}
+
 export const calendarRouter = createTRPCRouter({
   // Reads exclusively from the Corsair DB cache — fast, no live API call.
   // Call syncLatest first to populate/refresh the cache.
@@ -23,12 +37,14 @@ export const calendarRouter = createTRPCRouter({
       });
 
       const events = cachedEvents.map((event) => {
-        const data = event.data;
+        const data = event.data as GoogleCalendarEventData;
+        const start = data.start ?? {};
+        const end = data.end ?? {};
         return {
           id: event.entity_id,
-          summary: (data.summary as string) || "Untitled Event",
-          start: (data.start as any)?.dateTime || (data.start as any)?.date || "",
-          end: (data.end as any)?.dateTime ?? (data.end as any)?.date ??"",
+          summary: data.summary ?? "Untitled Event",
+          start: start.dateTime ?? start.date ?? "",
+          end: end.dateTime ?? end.date ?? "",
           note: userNotes.find((n) => n.eventId === event.entity_id)?.note ?? null,
         };
       });
@@ -57,8 +73,8 @@ export const calendarRouter = createTRPCRouter({
           hoursBlocked: Math.round(hoursBlocked * 10) / 10,
         },
       };
-    } catch (error: any) {
-      const msg = String(error?.message || error);
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
       if (msg.includes("Account not found") || msg.includes("auth-missing")) {
         // Return needsAuth so the UI prompts the connection flow
         return { needsAuth: true, needsSync: true, events: [], stats: { todayCount: 0, hoursBlocked: 0 } };
@@ -87,13 +103,15 @@ export const calendarRouter = createTRPCRouter({
     const syncedEventIds = new Set<string>();
     if (res.items?.length) {
       await Promise.all(
-        res.items.map((item: any) => {
-          syncedEventIds.add(item.id);
-          return ctx.tenant.googlecalendar.api.events.get({
-            calendarId: "primary",
-            id: item.id,          // docs: param is "id", not "eventId"
-          });
-        })
+        res.items
+          .filter((item): item is typeof item & { id: string } => Boolean(item.id))
+          .map((item) => {
+            syncedEventIds.add(item.id);
+            return ctx.tenant.googlecalendar.api.events.get({
+              calendarId: "primary",
+              id: item.id,          // docs: param is "id", not "eventId"
+            });
+          })
       );
     }
 
@@ -191,7 +209,7 @@ export const calendarRouter = createTRPCRouter({
         limit: 1,
       });
 
-      if (existing.length > 0) {
+      if (existing[0]) {
         await ctx.db
           .update(calendarNotes)
           .set({ note: input.note, updatedAt: new Date() })

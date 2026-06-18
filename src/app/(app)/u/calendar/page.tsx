@@ -8,7 +8,6 @@ import {
   Add01Icon,
   AlertCircleIcon,
 } from "@hugeicons/core-free-icons";
-import { ChatInput } from "@/app/_components/chat-input";
 import { GoogleOAuthConnection } from "@/app/_components/oauth-connections";
 import { useCalendarDashboard } from "./_hooks/use-calendar-dashboard";
 import { StatsRow } from "./_components/stats-row";
@@ -22,7 +21,6 @@ import type { CreateMeetingFormValues } from "./_lib/form-validation";
 export default function CalendarDashboard() {
   const {
     isLoading,
-    isFetching,
     error,
     needsAuth,
     needsSync,
@@ -96,9 +94,9 @@ export default function CalendarDashboard() {
       setSavingEventId(eventId);
 
       saveNote.mutate({ eventId, note }, {
-        onError: (err: any) => {
+        onError: (err: { message?: string }) => {
           setFailedEventId(eventId);
-          setSaveErrorMessage(err?.message ?? "Save failed");
+          setSaveErrorMessage(err.message ?? "Save failed");
           setSavingEventId(null);
         },
         onSuccess: () => {

@@ -17,6 +17,7 @@
     "lint:fix": "next lint --fix",
     "preview": "next build && next start",
     "start": "next start",
+    "start:mcp": "tsx src/server/server.ts",
     "test": "vitest --run",
     "typecheck": "tsc --noEmit",
     "test-script": "tsx src/server/test.ts"

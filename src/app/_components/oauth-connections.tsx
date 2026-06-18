@@ -15,7 +15,7 @@ export function GoogleOAuthConnection() {
   // Refresh status after a successful OAuth redirect
   useEffect(() => {
     if (justConnected) {
-      statusQuery.refetch();
+      void statusQuery.refetch();
     }
   }, [justConnected, statusQuery]);
 

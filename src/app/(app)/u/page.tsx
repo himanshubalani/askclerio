@@ -4,8 +4,6 @@
 import { useState, useMemo } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Loading02Icon, Mail01Icon, MailOpen01Icon, Search01Icon } from "@hugeicons/core-free-icons";
-import { ChatInput } from "@/app/_components/chat-input";
-import { MailboxView } from "@/app/_components/mailbox-view";
 import { GoogleOAuthConnection } from "@/app/_components/oauth-connections";
 import { api } from "@/trpc/react";
 import Link from "next/link";
@@ -16,10 +14,6 @@ function formatEmailTime(dateStr: string) {
   const isToday = new Date().toDateString() === date.toDateString();
   if (isToday) return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
-}
-
-export function InboxPage() {
-  return <MailboxView title="Inbox" labelId="INBOX" />;
 }
 
 export default function GmailDashboard() {
@@ -85,7 +79,7 @@ export default function GmailDashboard() {
           <div>
             <h1 className="text-2xl font-semibold text-[#022b3a] text-balance">Inbox</h1>
             <p className="text-sm text-[#022b3a]/60 text-pretty mt-1 tabular-nums">
-              {isLoading ? "Loading..." : `${data?.threads?.length || 0} recent threads`}
+              {isLoading ? "Loading..." : `${data?.threads?.length ?? 0} recent threads`}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -129,7 +123,7 @@ export default function GmailDashboard() {
               <div>
                 <h3 className="text-sm font-semibold text-[#022b3a]/60 mb-3">Labels</h3>
                 <div className="flex flex-wrap gap-2">
-                  {data.labels.map((label: any) => (
+                  {data.labels.map((label: { id: string; name: string }) => (
                     <span
                       key={label.id}
                       className={`px-2.5 py-1 rounded-full text-xs font-medium border ${
@@ -205,7 +199,7 @@ export default function GmailDashboard() {
               })}
             </div>
 
-            {data?.threads && data.threads.length === 0 && (
+            {data?.threads?.length === 0 && (
               <div className="text-center py-12 text-[#022b3a]/50">
                 No emails found in the local cache. Please sync your account or wait for webhooks.
               </div>
@@ -213,7 +207,7 @@ export default function GmailDashboard() {
             
             {data?.threads && data.threads.length > 0 && filteredThreads.length === 0 && (
               <div className="text-center py-12 text-[#022b3a]/50">
-                No emails match your search "{searchQuery}".
+                No emails match your search &ldquo;{searchQuery}&rdquo;.
               </div>
             )}
           </div>

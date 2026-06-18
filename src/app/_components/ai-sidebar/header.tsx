@@ -2,7 +2,6 @@
 
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  SparklesIcon,
   Clock01Icon,
   Settings01Icon,
   SidebarRight01Icon,

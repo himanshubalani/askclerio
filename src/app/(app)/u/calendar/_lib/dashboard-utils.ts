@@ -136,7 +136,7 @@ export function computeStats(
     if (ev.start.length === 10 && !ev.start.includes("T")) {
       // Date-only: parse as local date
       const [year, month, day] = ev.start.split("-").map(Number);
-      eventStartDate = new Date(year!, month! - 1, day!);
+      eventStartDate = new Date(year!, month! - 1, day);
     } else {
       eventStartDate = new Date(ev.start);
     }
@@ -152,7 +152,7 @@ export function computeStats(
         let endDate: Date;
         if (ev.end.length === 10 && !ev.end.includes("T")) {
           const [year, month, day] = ev.end.split("-").map(Number);
-          endDate = new Date(year!, month! - 1, day!);
+          endDate = new Date(year!, month! - 1, day);
         } else {
           endDate = new Date(ev.end);
         }
@@ -215,7 +215,7 @@ export function filterUpcomingEvents(
     let eventStartDate: Date;
     if (ev.start.length === 10 && !ev.start.includes("T")) {
       const [year, month, day] = ev.start.split("-").map(Number);
-      eventStartDate = new Date(year!, month! - 1, day!);
+      eventStartDate = new Date(year!, month! - 1, day);
     } else {
       eventStartDate = new Date(ev.start);
     }
@@ -241,7 +241,7 @@ export function groupEventsByDay(
     let eventStartDate: Date;
     if (ev.start.length === 10 && !ev.start.includes("T")) {
       const [year, month, day] = ev.start.split("-").map(Number);
-      eventStartDate = new Date(year!, month! - 1, day!);
+      eventStartDate = new Date(year!, month! - 1, day);
     } else {
       eventStartDate = new Date(ev.start);
     }
@@ -300,7 +300,7 @@ export function expandMultiDayEvent(
   const end = new Date(event.end);
   const results: Array<{ date: Date; event: MeetingCardData }> = [];
 
-  let current = new Date(Math.max(start.getTime(), windowStart.getTime()));
+  const current = new Date(Math.max(start.getTime(), windowStart.getTime()));
   current.setHours(0, 0, 0, 0);
 
   const endDay = new Date(Math.min(end.getTime(), windowEnd.getTime()));
@@ -336,7 +336,7 @@ export function computeDashboardData(
         let eventStartDate: Date;
         if (ev.start.length === 10 && !ev.start.includes("T")) {
           const [year, month, day] = ev.start.split("-").map(Number);
-          eventStartDate = new Date(year!, month! - 1, day!);
+          eventStartDate = new Date(year!, month! - 1, day);
         } else {
           eventStartDate = new Date(ev.start);
         }
@@ -371,13 +371,13 @@ export function computeDashboardData(
     let endDate: Date;
     if (ev.start.length === 10 && !ev.start.includes("T")) {
       const [y, m, d] = ev.start.split("-").map(Number);
-      startDate = new Date(y!, m! - 1, d!);
+      startDate = new Date(y!, m! - 1, d);
     } else {
       startDate = new Date(ev.start);
     }
     if (ev.end.length === 10 && !ev.end.includes("T")) {
       const [y, m, d] = ev.end.split("-").map(Number);
-      endDate = new Date(y!, m! - 1, d!);
+      endDate = new Date(y!, m! - 1, d);
     } else {
       endDate = new Date(ev.end);
     }

@@ -1,7 +1,7 @@
 // src/app/api/auth/google/callback/route.ts
 import { corsair } from "@/server/corsair";
 import { processOAuthCallback } from "corsair/oauth";
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
   const code = req.nextUrl.searchParams.get("code");

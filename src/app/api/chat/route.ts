@@ -1,5 +1,5 @@
 // src/app/api/chat/route.ts
-import { stepCountIs, streamText, convertToModelMessages } from 'ai';
+import { stepCountIs, streamText, convertToModelMessages, type UIMessage } from 'ai';
 import { openai } from '@ai-sdk/openai';
 import { createVercelAiMcpClient } from '@corsair-dev/mcp';
 import { auth } from '@clerk/nextjs/server';
@@ -22,7 +22,7 @@ async function buildMcpClient(tenantId: string) {
 }
 
 export async function POST(req: Request) {
-  const { messages: rawMessages } = await req.json();
+  const { messages: rawMessages } = (await req.json()) as { messages: UIMessage[] };
   const { userId } = await auth();
 
   if (!userId) {
@@ -31,8 +31,6 @@ export async function POST(req: Request) {
 
   // Convert client UI messages (parts-based) to ModelMessage[] for streamText
   const messages = await convertToModelMessages(rawMessages);
-
-  const _conversationId = req.headers.get('x-conversation-id') ?? undefined;
 
   // --- Connect to local MCP server ---
   let mcpClient;

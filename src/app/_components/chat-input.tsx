@@ -2,12 +2,13 @@
 "use client";
 
 import { useChat } from "@ai-sdk/react";
+import { DefaultChatTransport, isToolUIPart } from "ai";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { 
-  ArrowUp01Icon, 
-  SparklesIcon, 
-  Cancel01Icon, 
-  AlertCircleIcon 
+import {
+  ArrowUp01Icon,
+  SparklesIcon,
+  Cancel01Icon,
+  AlertCircleIcon,
 } from "@hugeicons/core-free-icons";
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 
@@ -15,9 +16,9 @@ export function ChatInput({ initialValue = "" }: { initialValue?: string }) {
   const [input, setInput] = useState(initialValue);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Standard AI SDK hook connection
-  const { messages, append, status, stop, error, reload } = useChat({
-    api: '/api/chat',
+  // Standard AI SDK hook connection (input state managed manually)
+  const { messages, sendMessage, status, stop, error, regenerate } = useChat({
+    transport: new DefaultChatTransport({ api: "/api/chat" }),
   });
 
   // Auto-resize logic
@@ -43,7 +44,7 @@ export function ChatInput({ initialValue = "" }: { initialValue?: string }) {
 
   const submitMessage = () => {
     if (input.trim() && !isStreaming) {
-      append({ role: "user", content: input });
+      void sendMessage({ text: input });
       setInput("");
       if (textareaRef.current) textareaRef.current.style.height = "44px";
     }
@@ -59,7 +60,7 @@ export function ChatInput({ initialValue = "" }: { initialValue?: string }) {
 
   return (
     <div className="w-full max-w-3xl mx-auto px-4 pb-6 pt-2 flex flex-col gap-4">
-      
+
       {/* Dynamic Chat Messages Area */}
       {messages.length > 0 && (
         <div className="flex flex-col gap-4 max-h-[50vh] overflow-y-auto px-2 mb-2 pb-2 scroll-smooth">
@@ -79,21 +80,35 @@ export function ChatInput({ initialValue = "" }: { initialValue?: string }) {
                 </div>
               )}
 
-              {/* Render Standard Text Content */}
-              {m.content && <div className="whitespace-pre-wrap">{m.content}</div>}
+              {/* Render message parts */}
+              {m.parts?.map((part, idx) => {
+                if (part.type === "text") {
+                  return (
+                    <div key={`${m.id}-text-${idx}`} className="whitespace-pre-wrap">
+                      {part.text}
+                    </div>
+                  );
+                }
 
-              {/* Render Tool Invocations Accurately */}
-              {m.toolInvocations?.map((toolInv) => {
-                return (
-                  <div key={toolInv.toolCallId} className="mt-3 p-2.5 bg-[#fcfcfc] rounded-lg border border-[#e1e5f2] text-xs text-[#1f7a8c] font-medium font-mono flex items-center gap-2">
-                    {toolInv.state === 'result' ? '✓' : (
-                      <div className="h-2 w-2 rounded-full bg-[#1f7a8c] animate-pulse shrink-0" />
-                    )}
-                    {toolInv.state === 'result' 
-                      ? `Executed: ${toolInv.toolName}` 
-                      : `Running: ${toolInv.toolName}...`}
-                  </div>
-                );
+                if (isToolUIPart(part)) {
+                  const isDone = part.state === "output-available";
+                  const toolName = part.type.replace(/^tool-/, "");
+                  return (
+                    <div
+                      key={part.toolCallId}
+                      className="mt-3 p-2.5 bg-[#fcfcfc] rounded-lg border border-[#e1e5f2] text-xs text-[#1f7a8c] font-medium font-mono flex items-center gap-2"
+                    >
+                      {isDone ? (
+                        "✓"
+                      ) : (
+                        <div className="h-2 w-2 rounded-full bg-[#1f7a8c] animate-pulse shrink-0" />
+                      )}
+                      {isDone ? `Executed: ${toolName}` : `Running: ${toolName}...`}
+                    </div>
+                  );
+                }
+
+                return null;
               })}
             </div>
           ))}
@@ -106,7 +121,7 @@ export function ChatInput({ initialValue = "" }: { initialValue?: string }) {
                 Something went wrong connecting to the Agent.
               </div>
               <button
-                onClick={() => reload()}
+                onClick={() => void regenerate()}
                 className="px-4 py-1.5 bg-white border border-red-200 rounded-md hover:bg-red-50 transition-[background-color] font-medium shadow-sm"
               >
                 Retry
@@ -122,7 +137,7 @@ export function ChatInput({ initialValue = "" }: { initialValue?: string }) {
           onSubmit={(e) => {
             e.preventDefault();
             submitMessage();
-          }} 
+          }}
           className="flex flex-col"
         >
           <textarea
@@ -130,18 +145,18 @@ export function ChatInput({ initialValue = "" }: { initialValue?: string }) {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={onKeyDown}
-            disabled={status !== 'ready' && status !== 'error' && isStreaming}
+            disabled={status !== "ready" && status !== "error" && isStreaming}
             placeholder={isStreaming ? "Clerio is executing..." : "Ask Clerio to send an email or schedule a meeting..."}
             className="w-full resize-none bg-transparent px-3 py-2 text-[15px] leading-relaxed text-[#022b3a] placeholder:text-[#022b3a]/40 focus:outline-none disabled:opacity-50"
             style={{ minHeight: "44px", maxHeight: "200px" }}
           />
-          
+
           <div className="flex items-center justify-between px-2 pb-1 pt-2 border-t border-[#e1e5f2]/50 mt-1">
             <div className="text-xs text-[#022b3a]/40 flex items-center gap-1.5 font-medium">
               <HugeiconsIcon icon={SparklesIcon} className="h-3.5 w-3.5" />
               {isStreaming ? "Agent is thinking..." : "Corsair MCP Agent Active"}
             </div>
-            
+
             <div className="flex items-center gap-2">
               {/* Interrupt / Stop Button */}
               {isStreaming && (

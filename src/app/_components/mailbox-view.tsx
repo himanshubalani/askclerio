@@ -117,7 +117,7 @@ export function MailboxView({ title, labelId }: { title: string; labelId: string
   }, [focusedIndex]);
 
   // Dynamically resolve the real label name if it's a custom user label (e.g. "Label_78349...")
-  const displayTitle = allLabels?.find((l) => l.id === labelId)?.name || title;
+  const displayTitle = allLabels?.find((l) => l.id === labelId)?.name ?? title;
 
   if (data?.needsAuth) {
     return (
@@ -146,7 +146,7 @@ export function MailboxView({ title, labelId }: { title: string; labelId: string
           <div>
             <h1 className="text-2xl font-semibold text-[#022b3a] text-balance">{displayTitle}</h1>
             <p className="text-sm text-[#022b3a]/60 text-pretty mt-1 tabular-nums">
-              {isLoading ? "Loading..." : `${data?.threads?.length || 0} recent threads`}
+              {isLoading ? "Loading..." : `${data?.threads?.length ?? 0} recent threads`}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -229,7 +229,7 @@ export function MailboxView({ title, labelId }: { title: string; labelId: string
               })}
             </div>
 
-            {data?.threads && data.threads.length === 0 && (
+            {data?.threads?.length === 0 && (
               <div className="text-center py-12 text-[#022b3a]/50">
                 No emails found in the local cache. Please hit Sync to pull from Gmail.
               </div>
