@@ -76,7 +76,10 @@ export function SettingsPanel() {
         const existingIndex = old.findIndex((s) => s.toolName === toolName);
         if (existingIndex >= 0) {
           const updated = [...old];
-          updated[existingIndex] = { ...updated[existingIndex]!, trustMode };
+          const existing = updated[existingIndex];
+          if (existing) {
+            updated[existingIndex] = { ...existing, trustMode };
+          }
           return updated;
         }
         // Add new entry optimistically
@@ -115,7 +118,8 @@ export function SettingsPanel() {
   function getEffectiveTrustMode(toolName: string): "ask_every_time" | "auto_run" {
     if (!userSettings) return "ask_every_time";
     const setting = userSettings.find((s) => s.toolName === toolName);
-    return (setting?.trustMode as "ask_every_time" | "auto_run") ?? "ask_every_time";
+    if (!setting) return "ask_every_time";
+    return setting.trustMode;
   }
 
   function handleToggle(toolName: string, mode: "ask_every_time" | "auto_run") {

@@ -19,7 +19,7 @@ interface GmailMessagePart {
 
 interface GmailMessageData {
   id: string;
-  threadId: string;
+  threadId?: string;
   labelIds?: string[];
   snippet?: string;
   payload?: { headers?: GmailHeader[] };
@@ -153,6 +153,7 @@ export const gmailRouter = createTRPCRouter({
           const senderName = rawSenderName !== "" ? decodeHtmlEntities(rawSenderName) : "Unknown Sender";
 
           const threadId = latestData.threadId;
+          if (!threadId) return [];
           const threadNote = userNotes.find((n) => n.threadId === threadId)?.note ?? null;
 
           const dateHeader = getHeaderVal("Date");

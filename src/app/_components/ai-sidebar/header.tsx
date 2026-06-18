@@ -2,11 +2,11 @@
 
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  SparklesIcon,
   Clock01Icon,
   Settings01Icon,
   SidebarRight01Icon,
 } from "@hugeicons/core-free-icons";
+import Image from "next/image";
 import { useAISidebar } from "./provider";
 
 export function SidebarHeader() {
@@ -29,10 +29,7 @@ export function SidebarHeader() {
     <header className="sticky top-0 z-10 flex items-center justify-between border-b border-[#e1e5f2] bg-white px-4 py-3">
       {/* Left: branding */}
       <div className="flex items-center gap-2">
-        <HugeiconsIcon
-          icon={SparklesIcon}
-          className="h-4 w-4 text-[#022b3a]"
-        />
+        <Image src="/clerio_logo_no_bg.svg" alt="" width={16} height={16} className="h-4 w-4" />
         <span className="text-[15px] font-semibold text-[#022b3a]">
           Ask Clerio
         </span>

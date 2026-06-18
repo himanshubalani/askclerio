@@ -26,7 +26,12 @@ export interface InputBarProps {
   onSubmit: (text: string) => void;
   onStop?: () => void;
   isStreaming?: boolean;
-  prefillText?: string;
+  /**
+   * Ephemeral request to pre-fill the textarea, e.g. from a "Reply" button
+   * elsewhere in the app. The nonce is bumped on every request so the same
+   * text re-applies on subsequent triggers.
+   */
+  prefillRequest?: { text: string; nonce: number } | null;
   disabled?: boolean;
 }
 
@@ -36,19 +41,29 @@ export function InputBar({
   onSubmit,
   onStop,
   isStreaming = false,
-  prefillText,
+  prefillRequest,
   disabled = false,
 }: InputBarProps) {
   const [value, setValue] = useState("");
   const [height, setHeight] = useState(44);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Pre-fill text on mount (or when prefillText changes to a non-empty value)
+  // Apply prefill whenever the request nonce changes. Focus & move cursor to
+  // the end so the user can start typing right away.
   useEffect(() => {
-    if (prefillText && prefillText.trim().length > 0) {
-      setValue(prefillText);
-    }
-  }, [prefillText]);
+    if (!prefillRequest) return;
+    const text = prefillRequest.text;
+    if (typeof text !== "string" || text.trim().length === 0) return;
+    setValue(text);
+    // Defer focus to next frame so the new value is committed first
+    requestAnimationFrame(() => {
+      const ta = textareaRef.current;
+      if (!ta) return;
+      ta.focus();
+      const end = ta.value.length;
+      ta.setSelectionRange(end, end);
+    });
+  }, [prefillRequest?.nonce]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Recompute height whenever value changes
   useEffect(() => {

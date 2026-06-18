@@ -6,7 +6,7 @@ import { corsair } from '@/server/corsair';
 export async function POST(request: NextRequest) {
 	const url = new URL(request.url);
 	const validationToken =
-		url.searchParams.get('validationtoken') ||
+		url.searchParams.get('validationtoken') ??
 		url.searchParams.get('validationToken');
 
 	if (validationToken) {
@@ -23,7 +23,9 @@ export async function POST(request: NextRequest) {
 	let body: string | Record<string, unknown> = {};
 	if (text?.trim()) {
 		try {
-			body = contentType?.includes('application/json') ? JSON.parse(text) : text;
+			body = contentType?.includes('application/json')
+				? (JSON.parse(text) as Record<string, unknown>)
+				: text;
 		} catch (e) {
 			console.error("Failed to parse webhook body:", e);
 			body = text;
@@ -33,9 +35,9 @@ export async function POST(request: NextRequest) {
 	// 1. Look for tenantId in the URL (for standard plugins)
 	// 2. Look in the headers (for custom setups)
 	// 3. If neither exist, let it be null so Corsair can auto-resolve Gmail via the payload!
-	const tenantId = url.searchParams.get('tenantId') 
-		|| url.searchParams.get('tenant') 
-		|| request.headers.get('x-tenant-id');
+	const tenantId = url.searchParams.get('tenantId')
+		?? url.searchParams.get('tenant')
+		?? request.headers.get('x-tenant-id');
 
 	try {
 		const result = await processWebhook(corsair, headers, body, { 

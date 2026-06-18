@@ -9,6 +9,7 @@ import { InputBar } from "./input-bar";
 import { StatusFooter, type ConnectionStatus } from "./status-footer";
 import { ToolCallCard } from "./tool-call-card";
 import { getToolMetadata, type ToolCallStatus } from "./use-tool-call-manager";
+import { useAISidebar } from "./provider";
 
 // --- Types ---
 
@@ -55,6 +56,10 @@ export function ChatContainer({ conversationId: externalConversationId }: ChatCo
   const [conversationId] = useState(
     () => externalConversationId ?? crypto.randomUUID(),
   );
+
+  // Pull ephemeral prefill requests (e.g. from Reply/Forward buttons) so we
+  // can forward them into the InputBar.
+  const { prefillRequest } = useAISidebar();
 
   const [isOffline, setIsOffline] = useState(false);
   const [bannerDismissed, setBannerDismissed] = useState(false);
@@ -292,6 +297,7 @@ export function ChatContainer({ conversationId: externalConversationId }: ChatCo
         onSubmit={handleSubmit}
         onStop={() => void stop()}
         isStreaming={isStreaming}
+        prefillRequest={prefillRequest}
         disabled={connectionStatus === "disconnected" || showNetworkBannerFinal}
       />
 

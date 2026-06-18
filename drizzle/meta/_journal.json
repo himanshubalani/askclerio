@@ -5,22 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1781729223142,
-      "tag": "0000_reflective_ser_duncan",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1781755380650,
-      "tag": "0001_tough_purifiers",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1781773418545,
-      "tag": "0002_thick_morlocks",
+      "when": 1781795088628,
+      "tag": "0000_talented_ser_duncan",
       "breakpoints": true
     }
   ]

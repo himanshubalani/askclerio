@@ -9,7 +9,7 @@ export const authRouter = createTRPCRouter({
     try {
       await ctx.tenant.gmail.api.labels.list({});
       gmailConnected = true;
-    } catch (error: unknown) {
+    } catch {
       // Not connected
     }
 
@@ -17,7 +17,7 @@ export const authRouter = createTRPCRouter({
     try {
       await ctx.tenant.googlecalendar.api.events.getMany({ calendarId: "primary", maxResults: 1 });
       calendarConnected = true;
-    } catch (error: unknown) {
+    } catch {
       // Not connected
     }
 

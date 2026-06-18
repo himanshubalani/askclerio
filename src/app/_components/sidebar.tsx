@@ -2,7 +2,8 @@
 "use client";
 
 import { HugeiconsIcon } from "@hugeicons/react";
-import { AlertCircleIcon, Calendar01Icon, InboxIcon, Loading02Icon, MoonIcon, SentIcon, Settings01Icon, SparklesIcon, StarIcon, Tag01Icon } from "@hugeicons/core-free-icons";
+import { AlertCircleIcon, Calendar01Icon, InboxIcon, Loading02Icon, MoonIcon, SentIcon, Settings01Icon, StarIcon, Tag01Icon } from "@hugeicons/core-free-icons";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { api } from "@/trpc/react";
@@ -35,7 +36,7 @@ export function Sidebar() {
         aria-label="Toggle AI Assistant"
         className="mb-8 flex items-center justify-center gap-2 rounded-xl bg-[#022b3a] px-4 py-3 font-medium text-white hover:bg-[#1f7a8c] hover:shadow-[0_2px_8px_rgba(2,43,58,0.12)] active:scale-[0.96] transition-[transform,background-color,box-shadow]"
       >
-        <HugeiconsIcon icon={SparklesIcon} className="h-4 w-4" />
+        <Image src="/clerio_logo_no_bg_white.svg" alt="" width={16} height={16} className="h-4 w-4" />
         Ask Clerio
       </button>
 
@@ -95,13 +96,39 @@ export function Sidebar() {
       </nav>
 
       {/* Bottom Actions */}
-      <div className="mt-auto flex items-center justify-between pt-4 border-t border-[#e1e5f2]">
-        <button className="rounded-lg p-2.5 text-[#022b3a]/60 hover:bg-[#e1e5f2]/50 hover:text-[#022b3a] transition-[color,background-color]">
-          <HugeiconsIcon icon={Settings01Icon} className="h-5 w-5" />
+      <div className="mt-auto pt-4 border-t border-[#e1e5f2]">
+        {/* Keyboard shortcut hint — click to open the full reference */}
+        <button
+          type="button"
+          onClick={() => {
+            // Synthesize the same Cmd/Ctrl + / event the KeyboardHelp listener handles
+            document.dispatchEvent(
+              new KeyboardEvent("keydown", {
+                key: "/",
+                ctrlKey: true,
+                metaKey: true,
+                bubbles: true,
+              }),
+            );
+          }}
+          aria-label="Show keyboard shortcuts"
+          className="mb-2 flex w-full items-center justify-between rounded-lg px-3 py-2 text-xs text-[#022b3a]/60 hover:bg-[#e1e5f2]/50 hover:text-[#022b3a] transition-[color,background-color]"
+        >
+          <span>Shortcuts</span>
+          <span className="flex items-center gap-1">
+            <kbd className="rounded border border-[#e1e5f2] bg-white px-1.5 py-0.5 font-mono text-[10px] font-semibold text-[#022b3a]">⌘</kbd>
+            <kbd className="rounded border border-[#e1e5f2] bg-white px-1.5 py-0.5 font-mono text-[10px] font-semibold text-[#022b3a]">/</kbd>
+          </span>
         </button>
-        <button className="rounded-lg p-2.5 text-[#022b3a]/60 hover:bg-[#e1e5f2]/50 hover:text-[#022b3a] transition-[color,background-color]">
-          <HugeiconsIcon icon={MoonIcon} className="h-5 w-5" />
-        </button>
+
+        <div className="flex items-center justify-between">
+          <button className="rounded-lg p-2.5 text-[#022b3a]/60 hover:bg-[#e1e5f2]/50 hover:text-[#022b3a] transition-[color,background-color]">
+            <HugeiconsIcon icon={Settings01Icon} className="h-5 w-5" />
+          </button>
+          <button className="rounded-lg p-2.5 text-[#022b3a]/60 hover:bg-[#e1e5f2]/50 hover:text-[#022b3a] transition-[color,background-color]">
+            <HugeiconsIcon icon={MoonIcon} className="h-5 w-5" />
+          </button>
+        </div>
       </div>
     </aside>
   );

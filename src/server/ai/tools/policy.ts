@@ -116,7 +116,7 @@ export function resolveNeedsApproval(
  * Even if a user sets "auto_run", the server-side verification still applies
  * (the SDK handles this transparently via the secret).
  */
-export const IRREVERSIBLE_TOOLS: Set<string> = new Set([
+export const IRREVERSIBLE_TOOLS = new Set<string>([
   "run_script", // Can send emails, delete data, modify external systems
   // Future additions as specific tools are exposed:
   // 'send_email',

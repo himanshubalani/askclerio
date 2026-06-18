@@ -36,7 +36,7 @@ export function renderMarkdown(text: string): React.ReactNode[] {
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]!;
-    const listMatch = line.match(/^[-*]\s+(.*)/);
+    const listMatch = /^[-*]\s+(.*)/.exec(line);
 
     if (listMatch) {
       listItems.push(
@@ -50,7 +50,7 @@ export function renderMarkdown(text: string): React.ReactNode[] {
       } else {
         if (elements.length > 0 && i > 0) {
           const prevLine = lines[i - 1];
-          if (prevLine !== undefined && !prevLine.match(/^[-*]\s+/) && prevLine !== "") {
+          if (prevLine !== undefined && !(/^[-*]\s+/.exec(prevLine)) && prevLine !== "") {
             elements.push(<br key={`br-${keyCounter++}`} />);
           }
         }

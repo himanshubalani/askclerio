@@ -3,7 +3,7 @@ import { getOpenAIMcpConfig } from '@corsair-dev/mcp';
 
 const client = new OpenAI();
 const mcpConfig = getOpenAIMcpConfig('https://81a9-2405-201-100e-a06c-7c3c-9113-d7b8-2b8f.ngrok-free.app/mcp', {
-    'x-mcp-internal-token': process.env.MCP_INTERNAL_TOKEN || '',
+    'x-mcp-internal-token': process.env.MCP_INTERNAL_TOKEN ?? '',
 });
 
 const response = await client.responses.create({

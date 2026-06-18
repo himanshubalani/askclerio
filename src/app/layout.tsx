@@ -3,6 +3,7 @@ import { TRPCReactProvider } from '@/trpc/react'
 import { Geist, Geist_Mono } from 'next/font/google'
 import Image from 'next/image'
 import Link from 'next/link'
+import { Analytics } from '@vercel/analytics/next'
 import '@/styles/globals.css'
 
 const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] })
@@ -44,6 +45,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             </header>
             {children}
           </TRPCReactProvider>
+          <Analytics />
         </body>
       </html>
     </ClerkProvider>

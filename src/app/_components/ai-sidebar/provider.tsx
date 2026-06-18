@@ -18,8 +18,19 @@ export interface AISidebarState {
   activePanel: "thread" | "settings" | "history";
 }
 
+/**
+ * Ephemeral prefill request used to seed the InputBar from elsewhere in the app
+ * (e.g. clicking Reply/Forward on a thread). Each call bumps the nonce so the
+ * InputBar re-applies the value even if the text matches a previous prefill.
+ */
+export interface PrefillRequest {
+  text: string;
+  nonce: number;
+}
+
 export interface AISidebarContextValue {
   state: AISidebarState;
+  prefillRequest: PrefillRequest | null;
   open: () => void;
   close: () => void;
   toggle: () => void;
@@ -27,6 +38,7 @@ export interface AISidebarContextValue {
   expand: () => void;
   setWidth: (width: number) => void;
   setActivePanel: (panel: AISidebarState["activePanel"]) => void;
+  sendPrefill: (text: string) => void;
 }
 
 // --- Constants ---
@@ -98,6 +110,7 @@ function writeStateToStorage(state: AISidebarState): void {
 
 export function AISidebarProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<AISidebarState>(DEFAULT_STATE);
+  const [prefillRequest, setPrefillRequest] = useState<PrefillRequest | null>(null);
   const isHydrated = useRef(false);
 
   // Hydrate from localStorage on mount
@@ -166,8 +179,21 @@ export function AISidebarProvider({ children }: { children: React.ReactNode }) {
     [],
   );
 
+  // Open the sidebar (in chat panel) and seed the InputBar with prefill text.
+  // Bumps a nonce each call so repeated prefills with the same text still apply.
+  const sendPrefill = useCallback((text: string) => {
+    setState((prev) => ({
+      ...prev,
+      isOpen: true,
+      isRailMode: false,
+      activePanel: "thread",
+    }));
+    setPrefillRequest({ text, nonce: Date.now() });
+  }, []);
+
   const value: AISidebarContextValue = {
     state,
+    prefillRequest,
     open,
     close,
     toggle,
@@ -175,6 +201,7 @@ export function AISidebarProvider({ children }: { children: React.ReactNode }) {
     expand,
     setWidth,
     setActivePanel,
+    sendPrefill,
   };
 
   return (

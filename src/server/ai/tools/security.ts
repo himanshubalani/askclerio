@@ -186,7 +186,7 @@ export function createRateLimiter(options?: {
    * The key is `${userId}:${toolName}` for per-tool tracking,
    * but the window applies across all write tools for the user.
    */
-  function checkRateLimit(userId: string, toolName: string): RateLimitResult {
+  function checkRateLimit(userId: string, _toolName: string): RateLimitResult {
     const key = `write:${userId}`;
     const now = Date.now();
     const windowStart = now - windowMs;

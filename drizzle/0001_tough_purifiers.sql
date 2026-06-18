@@ -1,3 +1,0 @@
-ALTER TABLE "askclerio_chat_tool_calls" ADD COLUMN "approval_token_verified_at" timestamp with time zone;--> statement-breakpoint
-ALTER TABLE "askclerio_chat_tool_calls" ADD COLUMN "approved_by_user_id" text;--> statement-breakpoint
-ALTER TABLE "askclerio_chat_tool_calls" ADD CONSTRAINT "askclerio_chat_tool_calls_approved_by_user_id_askclerio_users_id_fk" FOREIGN KEY ("approved_by_user_id") REFERENCES "public"."askclerio_users"("id") ON DELETE no action ON UPDATE no action;
