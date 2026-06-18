@@ -1,4 +1,4 @@
-import { pgTable, text, jsonb, timestamp, pgEnum, vector } from 'drizzle-orm/pg-core';
+import { pgTable, text, jsonb, timestamp, pgEnum, vector, index } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 
 export const corsairIntegrations = pgTable('corsair_integrations', {
@@ -152,3 +152,33 @@ export const calendarAiMeta = pgTable('askclerio_calendar_ai_meta', {
     contentHash: text('content_hash').notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
+
+
+// --- TENANT MCP KEYS ---
+export const tenantMcpKeys = pgTable('askclerio_tenant_mcp_keys', {
+    id: text('id').primaryKey().default(sql`gen_random_uuid()`).notNull(),
+    tenantId: text('tenant_id').notNull().unique().references(() => users.tenantId),
+    encryptedSecret: text('encrypted_secret').notNull(),
+    mcpHttpUrl: text('mcp_http_url').notNull(),
+    keyLabel: text('key_label').notNull().default('clerio-sidebar'),
+    expiresAt: timestamp('expires_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    rotatedAt: timestamp('rotated_at', { withTimezone: true }),
+});
+
+// --- STRUCTURED WRITE LOG ---
+export const structuredWriteLog = pgTable('askclerio_structured_write_log', {
+    id: text('id').primaryKey().default(sql`gen_random_uuid()`).notNull(),
+    tenantId: text('tenant_id').notNull(),
+    approvingUserId: text('approving_user_id'),
+    operationPath: text('operation_path').notNull(),
+    executedAt: timestamp('executed_at', { withTimezone: true }).notNull().defaultNow(),
+    toolCallId: text('tool_call_id').notNull(),
+    status: text('status').notNull(), // 'executed' | 'rejected' | 'rate_limited'
+    recipientAddress: text('recipient_address'),
+    eventTitle: text('event_title'),
+    eventStartTime: text('event_start_time'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (table) => ({
+    tenantExecutedAtIdx: index('idx_write_log_tenant_time').on(table.tenantId, table.executedAt),
+}));

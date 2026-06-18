@@ -1,3 +1,4 @@
+// src/app/_components/ai-sidebar/index.ts
 export {
   AISidebarProvider,
   useAISidebar,
@@ -57,7 +58,6 @@ export {
 
 export {
   ToolCallCard,
-  truncateParam,
   type ToolCallCardProps,
 } from "./tool-call-card";
 

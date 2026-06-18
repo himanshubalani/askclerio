@@ -15,7 +15,6 @@ import {
 import { use, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/trpc/react";
-import { ChatInput } from "@/app/_components/chat-input";
 
 export default function ThreadView({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -197,10 +196,6 @@ export default function ThreadView({ params }: { params: Promise<{ id: string }>
         )}
       </div>
 
-      {/* Clerio Command Input */}
-      <div className="shrink-0 bg-white border-t border-[#e1e5f2] pt-4 z-10 shadow-[0_-4px_24px_rgba(2,43,58,0.02)]">
-        <ChatInput initialValue={chatIntent} />
-      </div>
     </div>
   );
 }

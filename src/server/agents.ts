@@ -7,7 +7,7 @@ const mcpConfig = getOpenAIMcpConfig('https://81a9-2405-201-100e-a06c-7c3c-9113-
 });
 
 const response = await client.responses.create({
-    model: 'gpt-4.1',
+    model: 'gpt-4o-mini',
     tools: [
         {
             type: 'mcp',

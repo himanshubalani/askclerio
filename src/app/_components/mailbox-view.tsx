@@ -166,9 +166,6 @@ export function MailboxView({ title, labelId }: { title: string; labelId: string
         )}
       </div>
 
-      <div className="shrink-0 bg-gradient-to-t from-white via-white to-transparent pt-4">
-        <ChatInput />
-      </div>
     </>
   );
 }

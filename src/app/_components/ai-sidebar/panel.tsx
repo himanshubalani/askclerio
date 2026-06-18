@@ -4,6 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { SidebarLeft01Icon } from "@hugeicons/core-free-icons";
 import { useAISidebar } from "./provider";
+import { SidebarHeader } from "./header";
+import { ChatContainer } from "./chat-container";
 
 // --- Constants ---
 
@@ -203,10 +205,11 @@ export function AISidebarPanel() {
         aria-hidden="true"
       />
 
-      {/* Placeholder content — will be replaced by SidebarHeader, ContextStrip, ThreadView, InputBar, StatusFooter */}
-      <div className="flex flex-1 flex-col items-center justify-center p-4">
-        <p className="text-sm text-[#022b3a]/60">AI Assistant</p>
-      </div>
+      {/* Sidebar Header with branding + action buttons */}
+      <SidebarHeader />
+
+      {/* Chat Container: ThreadView + ToolCallCards + InputBar + StatusFooter */}
+      <ChatContainer />
     </>
   );
 
@@ -246,7 +249,7 @@ export function AISidebarPanel() {
       ref={panelRef}
       role="complementary"
       aria-label="AI Assistant"
-      className="relative flex flex-col overflow-hidden border-l border-[#e1e5f2] bg-white"
+      className="relative flex flex-col overflow-hidden border-l border-[#e1e5f2] bg-white h-full"
       style={{
         width: `${panelWidth}px`,
         minWidth: isOpen ? `${width}px` : "0px",

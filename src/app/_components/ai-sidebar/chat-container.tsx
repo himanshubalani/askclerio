@@ -1,3 +1,4 @@
+// src/app/_components/ai-sidebar/chat-container.tsx
 "use client";
 
 import { useChat } from "@ai-sdk/react";
@@ -11,7 +12,6 @@ import { getToolMetadata, type ToolCallStatus } from "./use-tool-call-manager";
 
 // --- Types ---
 
-/** Represents a tool invocation part extracted from a message for rendering. */
 interface ExtractedToolInvocation {
   toolCallId: string;
   toolName: string;
@@ -24,25 +24,15 @@ interface ExtractedToolInvocation {
 
 // --- State Mapping ---
 
-/**
- * Maps AI SDK v6 tool invocation part states to our ToolCallCard display states.
- *
- * SDK states: input-streaming, input-available, approval-requested,
- *             approval-responded, output-available, output-error, output-denied
- *
- * Card states: draft, awaiting_confirmation, running, done, failed, cancelled
- */
 function mapPartStateToCardStatus(state: string): ToolCallStatus {
   switch (state) {
     case "input-streaming":
       return "draft";
     case "input-available":
-      // Tool input available but not yet executed (auto-run tools)
       return "running";
     case "approval-requested":
       return "awaiting_confirmation";
     case "approval-responded":
-      // Approval given, now executing
       return "running";
     case "output-available":
       return "done";
@@ -58,41 +48,29 @@ function mapPartStateToCardStatus(state: string): ToolCallStatus {
 // --- Component ---
 
 export interface ChatContainerProps {
-  /** External conversation ID. If not provided, a new one is generated. */
   conversationId?: string;
 }
 
-/**
- * ChatContainer wires together useChat from @ai-sdk/react with the
- * ThreadView, InputBar, StatusFooter, and ToolCallCard components.
- *
- * It connects to /api/chat via DefaultChatTransport, passes the conversation
- * ID as a header, and handles tool call approval/rejection via the SDK's
- * native `addToolApprovalResponse`.
- */
 export function ChatContainer({ conversationId: externalConversationId }: ChatContainerProps) {
   const [conversationId] = useState(
     () => externalConversationId ?? crypto.randomUUID(),
   );
 
-  // --- Network connectivity state ---
   const [isOffline, setIsOffline] = useState(false);
   const [bannerDismissed, setBannerDismissed] = useState(false);
 
   useEffect(() => {
-    // Check initial state
     if (typeof window !== "undefined" && !navigator.onLine) {
       setIsOffline(true);
     }
 
     const handleOffline = () => {
       setIsOffline(true);
-      setBannerDismissed(false); // Reset dismissal on new disconnection
+      setBannerDismissed(false);
     };
 
     const handleOnline = () => {
       setIsOffline(false);
-      // Auto-dismiss banner on reconnect
     };
 
     window.addEventListener("offline", handleOffline);
@@ -106,7 +84,6 @@ export function ChatContainer({ conversationId: externalConversationId }: ChatCo
 
   const showNetworkBanner = isOffline && !bannerDismissed;
 
-  // Create transport with conversation ID header
   const transport = useMemo(
     () =>
       new DefaultChatTransport({
@@ -129,24 +106,19 @@ export function ChatContainer({ conversationId: externalConversationId }: ChatCo
     transport,
   });
 
-  // --- Derive connection status from chat state ---
   const connectionStatus: ConnectionStatus = error
     ? "disconnected"
     : status === "submitted" || status === "streaming"
       ? "thinking"
       : "active";
 
-  // Detect network-related errors from useChat
   const isNetworkError = error?.message
     ? /network|fetch|failed to fetch|ERR_INTERNET_DISCONNECTED/i.test(error.message)
     : false;
 
-  // Show network banner when offline or when a network error occurs
   const showNetworkBannerFinal = (showNetworkBanner || isNetworkError) && !bannerDismissed;
-
   const isStreaming = status === "submitted" || status === "streaming";
 
-  // --- Message submission ---
   const handleSubmit = useCallback(
     (text: string) => {
       void sendMessage({ text });
@@ -154,7 +126,6 @@ export function ChatContainer({ conversationId: externalConversationId }: ChatCo
     [sendMessage],
   );
 
-  // --- Tool approval handler ---
   const handleToolApprove = useCallback(
     (approvalId: string) => {
       void addToolApprovalResponse({
@@ -165,7 +136,6 @@ export function ChatContainer({ conversationId: externalConversationId }: ChatCo
     [addToolApprovalResponse],
   );
 
-  // --- Tool rejection handler ---
   const handleToolReject = useCallback(
     (approvalId: string) => {
       void addToolApprovalResponse({
@@ -177,7 +147,6 @@ export function ChatContainer({ conversationId: externalConversationId }: ChatCo
     [addToolApprovalResponse],
   );
 
-  // --- Transform messages for ThreadView ---
   const threadMessages = useMemo(
     () =>
       messages.map((msg) => ({
@@ -192,13 +161,11 @@ export function ChatContainer({ conversationId: externalConversationId }: ChatCo
     [messages],
   );
 
-  // --- Extract tool invocations from message parts ---
   const toolInvocations = useMemo(() => {
     const invocations: ExtractedToolInvocation[] = [];
 
     for (const msg of messages) {
       for (const part of msg.parts) {
-        // Tool parts have type starting with "tool-" or "dynamic-tool"
         if (part.type === "dynamic-tool" || part.type.startsWith("tool-")) {
           const toolPart = part as unknown as {
             type: string;
@@ -211,7 +178,6 @@ export function ChatContainer({ conversationId: externalConversationId }: ChatCo
             approval?: { id: string; approved?: boolean; reason?: string };
           };
 
-          // Extract tool name: for typed tools it's in the type (tool-{name}), for dynamic it's in toolName
           const toolName =
             toolPart.toolName ??
             (toolPart.type.startsWith("tool-")
@@ -234,12 +200,11 @@ export function ChatContainer({ conversationId: externalConversationId }: ChatCo
     return invocations;
   }, [messages]);
 
-  // Filter to only show actionable/visible tool invocations
-  const visibleToolInvocations = toolInvocations.filter(
-    (inv) => inv.state !== "input-streaming",
+  // Filter out completed/cancelled tasks so the bar disappears cleanly once done
+  const activeToolInvocations = toolInvocations.filter(
+    (inv) => !["input-streaming", "output-available", "output-denied"].includes(inv.state)
   );
 
-  // --- Suggestion click handler ---
   const handleSuggestionClick = useCallback(
     (text: string) => {
       void sendMessage({ text });
@@ -248,7 +213,7 @@ export function ChatContainer({ conversationId: externalConversationId }: ChatCo
   );
 
   return (
-    <div className="flex flex-1 flex-col overflow-hidden">
+    <div className="flex flex-1 flex-col overflow-hidden min-h-0">
       {/* Network connectivity banner */}
       {showNetworkBannerFinal && (
         <div className="mx-3 mt-2 flex items-center justify-between rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
@@ -273,13 +238,12 @@ export function ChatContainer({ conversationId: externalConversationId }: ChatCo
         onSuggestionClick={handleSuggestionClick}
       />
 
-      {/* Tool Call Cards — rendered for tool invocations needing action or showing state */}
-      {visibleToolInvocations.length > 0 && (
-        <div className="space-y-2 border-t border-[#e1e5f2]/50 px-4 py-2">
-          {visibleToolInvocations.map((inv, index) => {
+      {/* Thin Tool Call Bars (Active only) */}
+      {activeToolInvocations.length > 0 && (
+        <div className="px-4 pb-2 pt-2 flex flex-col gap-2 bg-gradient-to-t from-white/0 via-white/80 to-white/0">
+          {activeToolInvocations.map((inv) => {
             const metadata = getToolMetadata(inv.toolName);
             const cardStatus = mapPartStateToCardStatus(inv.state);
-            const showConnector = index > 0;
 
             return (
               <ToolCallCard
@@ -308,7 +272,6 @@ export function ChatContainer({ conversationId: externalConversationId }: ChatCo
                   }
                 }}
                 onRetry={() => {
-                  // Retry by re-approving (if approval is still available)
                   if (inv.approvalId) {
                     handleToolApprove(inv.approvalId);
                   }
@@ -318,7 +281,6 @@ export function ChatContainer({ conversationId: externalConversationId }: ChatCo
                     handleToolReject(inv.approvalId);
                   }
                 }}
-                showConnector={showConnector}
               />
             );
           })}

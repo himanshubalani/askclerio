@@ -48,10 +48,13 @@ export interface UserToolSetting {
 /**
  * Determines whether a tool invocation requires user approval before execution.
  *
- * Rules:
- * 1. Read-classified tools → never need approval (auto-execute)
- * 2. Write-classified tools → need approval UNLESS user has explicitly set "auto_run"
- * 3. Unknown/unclassified tools → always need approval (fail-safe)
+ * Rules (operation-path-based for run_script):
+ * 1. `get_schema` and `list_operations` → never need approval (read-only, no side effects)
+ * 2. `corsair_setup` → always needs approval (modifies integration configuration)
+ * 3. `run_script` with parseable input → return `isWriteOperation(extractOperationPath(input))`
+ * 4. `run_script` with null/unparseable input → return `true` (safe fallback)
+ * 5. Unknown tool names → return `true` (safe fallback)
+ * 6. User trust mode "auto_run" override still applies for write-classified operations
  *
  * Note: Even if a write tool has "auto_run" trust mode, the server-side
  * `experimental_toolApprovalSecret` verification still applies for irreversible
@@ -60,24 +63,42 @@ export interface UserToolSetting {
  */
 export function resolveNeedsApproval(
   toolName: string,
-  userToolSettings: UserToolSetting[]
+  userToolSettings: UserToolSetting[],
+  toolInput?: unknown
 ): boolean {
-  const classification = getToolClassification(toolName);
-
-  // Read tools never need approval
-  if (classification === "read") {
+  // Read-only tools: never need approval
+  if (toolName === "get_schema" || toolName === "list_operations") {
     return false;
   }
 
-  // Write tools: check user's trust setting
-  const userSetting = userToolSettings.find((s) => s.toolName === toolName);
-
-  // If user has explicitly set auto_run for this write tool, skip approval UI
-  if (userSetting?.trustMode === "auto_run") {
-    return false;
+  // corsair_setup: always needs approval (modifies configuration)
+  if (toolName === "corsair_setup") {
+    return true;
   }
 
-  // Default: write tools and unknown tools require approval
+  // run_script: inspect operation path from tool input
+  if (toolName === "run_script") {
+    const opPath = extractOperationPath(toolInput);
+
+    // If we can't determine the operation path, fail-safe: require approval
+    if (opPath === null) {
+      return true;
+    }
+
+    const needsApproval = isWriteOperation(opPath);
+
+    // If it's a write operation, check user trust mode override
+    if (needsApproval) {
+      const userSetting = userToolSettings.find((s) => s.toolName === toolName);
+      if (userSetting?.trustMode === "auto_run") {
+        return false;
+      }
+    }
+
+    return needsApproval;
+  }
+
+  // Unknown tool names: safe fallback requires approval
   return true;
 }
 
@@ -110,4 +131,46 @@ export const IRREVERSIBLE_TOOLS: Set<string> = new Set([
  */
 export function requiresSignedApproval(toolName: string): boolean {
   return IRREVERSIBLE_TOOLS.has(toolName);
+}
+
+// ─── Operation-Path Inspection ────────────────────────────────────────────────
+
+/**
+ * The explicit set of write operation paths.
+ * Only `run_script` invocations whose operation path appears here are classified
+ * as write operations requiring user approval.
+ */
+export const WRITE_OPERATION_ALLOWLIST: ReadonlySet<string> = new Set([
+  "gmail.api.messages.send",
+  "googlecalendar.api.events.insert",
+  "googlecalendar.api.events.update",
+]);
+
+/**
+ * Extracts the operation path from a `run_script` tool input object.
+ * Returns the operation path string if the input is a valid object with a
+ * string-valued `operationPath` field; otherwise returns null.
+ *
+ * // Schema verified: 2025-06-18
+ */
+export function extractOperationPath(input: unknown): string | null {
+  if (input == null || typeof input !== "object") {
+    return null;
+  }
+
+  const record = input as Record<string, unknown>;
+
+  if (typeof record.operationPath === "string" && record.operationPath.length > 0) {
+    return record.operationPath;
+  }
+
+  return null;
+}
+
+/**
+ * Returns true if the given operation path is classified as a write operation
+ * (i.e. it exists in the WRITE_OPERATION_ALLOWLIST).
+ */
+export function isWriteOperation(opPath: string): boolean {
+  return WRITE_OPERATION_ALLOWLIST.has(opPath);
 }
