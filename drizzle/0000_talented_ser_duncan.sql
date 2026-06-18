@@ -1,4 +1,7 @@
---> statement-breakpoint
+CREATE TYPE "public"."email_priority" AS ENUM('high', 'normal', 'low');--> statement-breakpoint
+CREATE TYPE "public"."chat_message_role" AS ENUM('user', 'assistant', 'system', 'tool');--> statement-breakpoint
+CREATE TYPE "public"."tool_call_status" AS ENUM('draft', 'awaiting_confirmation', 'running', 'done', 'cancelled', 'failed');--> statement-breakpoint
+CREATE TYPE "public"."tool_trust_mode" AS ENUM('ask_every_time', 'auto_run');--> statement-breakpoint
 CREATE TABLE "askclerio_calendar_ai_meta" (
 	"id" text PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"user_id" text NOT NULL,
@@ -49,6 +52,8 @@ CREATE TABLE "askclerio_chat_tool_calls" (
 	"retry_count" text DEFAULT '0' NOT NULL,
 	"error_message" text,
 	"approval_token" text,
+	"approval_token_verified_at" timestamp with time zone,
+	"approved_by_user_id" text,
 	"started_at" timestamp with time zone,
 	"completed_at" timestamp with time zone,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
@@ -126,6 +131,32 @@ CREATE TABLE "askclerio_email_notes" (
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE "askclerio_structured_write_log" (
+	"id" text PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"tenant_id" text NOT NULL,
+	"approving_user_id" text,
+	"operation_path" text NOT NULL,
+	"executed_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"tool_call_id" text NOT NULL,
+	"status" text NOT NULL,
+	"recipient_address" text,
+	"event_title" text,
+	"event_start_time" text,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "askclerio_tenant_mcp_keys" (
+	"id" text PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"tenant_id" text NOT NULL,
+	"encrypted_secret" text NOT NULL,
+	"mcp_http_url" text NOT NULL,
+	"key_label" text DEFAULT 'clerio-sidebar' NOT NULL,
+	"expires_at" timestamp with time zone,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"rotated_at" timestamp with time zone,
+	CONSTRAINT "askclerio_tenant_mcp_keys_tenant_id_unique" UNIQUE("tenant_id")
+);
+--> statement-breakpoint
 CREATE TABLE "askclerio_users" (
 	"id" text PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"clerk_id" text NOT NULL,
@@ -145,8 +176,11 @@ ALTER TABLE "askclerio_chat_conversations" ADD CONSTRAINT "askclerio_chat_conver
 ALTER TABLE "askclerio_chat_messages" ADD CONSTRAINT "askclerio_chat_messages_conversation_id_askclerio_chat_conversations_id_fk" FOREIGN KEY ("conversation_id") REFERENCES "public"."askclerio_chat_conversations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "askclerio_chat_tool_calls" ADD CONSTRAINT "askclerio_chat_tool_calls_message_id_askclerio_chat_messages_id_fk" FOREIGN KEY ("message_id") REFERENCES "public"."askclerio_chat_messages"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "askclerio_chat_tool_calls" ADD CONSTRAINT "askclerio_chat_tool_calls_conversation_id_askclerio_chat_conversations_id_fk" FOREIGN KEY ("conversation_id") REFERENCES "public"."askclerio_chat_conversations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "askclerio_chat_tool_calls" ADD CONSTRAINT "askclerio_chat_tool_calls_approved_by_user_id_askclerio_users_id_fk" FOREIGN KEY ("approved_by_user_id") REFERENCES "public"."askclerio_users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "askclerio_chat_tool_settings" ADD CONSTRAINT "askclerio_chat_tool_settings_user_id_askclerio_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."askclerio_users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "corsair_accounts" ADD CONSTRAINT "corsair_accounts_integration_id_corsair_integrations_id_fk" FOREIGN KEY ("integration_id") REFERENCES "public"."corsair_integrations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "corsair_entities" ADD CONSTRAINT "corsair_entities_account_id_corsair_accounts_id_fk" FOREIGN KEY ("account_id") REFERENCES "public"."corsair_accounts"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "corsair_events" ADD CONSTRAINT "corsair_events_account_id_corsair_accounts_id_fk" FOREIGN KEY ("account_id") REFERENCES "public"."corsair_accounts"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "askclerio_email_ai_meta" ADD CONSTRAINT "askclerio_email_ai_meta_user_id_askclerio_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."askclerio_users"("id") ON DELETE no action ON UPDATE no action;
+ALTER TABLE "askclerio_email_ai_meta" ADD CONSTRAINT "askclerio_email_ai_meta_user_id_askclerio_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."askclerio_users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "askclerio_tenant_mcp_keys" ADD CONSTRAINT "askclerio_tenant_mcp_keys_tenant_id_askclerio_users_tenant_id_fk" FOREIGN KEY ("tenant_id") REFERENCES "public"."askclerio_users"("tenant_id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+CREATE INDEX "idx_write_log_tenant_time" ON "askclerio_structured_write_log" USING btree ("tenant_id","executed_at");

@@ -64,7 +64,7 @@ The result: pressing `r` on a focused thread opens a pre-filled chat to Clerio. 
 | `f` | Forward (opens Clerio) |
 | `u` / `Esc` | Back to inbox (from a thread) |
 | `Cmd` / `Ctrl` + `.` | Toggle Clerio sidebar |
-| `?` | Show full shortcut reference |
+| `Cmd` / `Ctrl` + `/` | Show full shortcut reference |
 
 ---
 

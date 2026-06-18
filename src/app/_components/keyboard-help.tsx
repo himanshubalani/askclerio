@@ -30,17 +30,9 @@ const THREAD_SHORTCUTS: Shortcut[] = [
 
 const GLOBAL_SHORTCUTS: Shortcut[] = [
   { keys: ["⌘", "."], description: "Toggle Clerio sidebar" },
-  { keys: ["?"], description: "Show this help" },
+  { keys: ["⌘", "/"], description: "Show this help" },
   { keys: ["Esc"], description: "Close dialog / sidebar" },
 ];
-
-function isEditableTarget(target: EventTarget | null): boolean {
-  if (!target || !(target instanceof HTMLElement)) return false;
-  const tag = target.tagName;
-  if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return true;
-  if (target.isContentEditable) return true;
-  return false;
-}
 
 function Kbd({ children }: { children: React.ReactNode }) {
   return (
@@ -72,10 +64,10 @@ export function KeyboardHelp() {
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
-      if (event.metaKey || event.ctrlKey || event.altKey) return;
-      if (isEditableTarget(event.target)) return;
-
-      if (event.key === "?") {
+      // Cmd/Ctrl + / toggles open. We allow this even when typing in an
+      // input — modifier-keyed shortcuts shouldn't be swallowed by editable
+      // targets (browser conventions like Cmd+A still fire there).
+      if ((event.metaKey || event.ctrlKey) && event.key === "/") {
         event.preventDefault();
         setIsOpen((prev) => !prev);
         return;
@@ -158,7 +150,7 @@ export function KeyboardHelp() {
         </div>
 
         <footer className="rounded-b-2xl border-t border-[#e1e5f2] bg-[#fcfcfc]/50 px-5 py-3 text-xs text-[#022b3a]/50">
-          Press <Kbd>?</Kbd> any time to open this dialog.
+          Press <Kbd>⌘</Kbd> <Kbd>/</Kbd> any time to open this dialog.
         </footer>
       </div>
     </div>

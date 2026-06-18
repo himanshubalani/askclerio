@@ -254,7 +254,8 @@ export function MailboxView({ title, labelId }: { title: string; labelId: string
                 <span className="mx-1">archive ·</span>
                 <kbd className="rounded border border-[#e1e5f2] bg-white px-1.5 py-0.5 font-mono">r</kbd>
                 <span className="mx-1">reply ·</span>
-                <kbd className="rounded border border-[#e1e5f2] bg-white px-1.5 py-0.5 font-mono">?</kbd>
+                <kbd className="rounded border border-[#e1e5f2] bg-white px-1.5 py-0.5 font-mono">⌘</kbd>
+                <kbd className="ml-1 rounded border border-[#e1e5f2] bg-white px-1.5 py-0.5 font-mono">/</kbd>
                 <span className="ml-1">help</span>
               </div>
             )}

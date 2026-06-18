@@ -96,13 +96,39 @@ export function Sidebar() {
       </nav>
 
       {/* Bottom Actions */}
-      <div className="mt-auto flex items-center justify-between pt-4 border-t border-[#e1e5f2]">
-        <button className="rounded-lg p-2.5 text-[#022b3a]/60 hover:bg-[#e1e5f2]/50 hover:text-[#022b3a] transition-[color,background-color]">
-          <HugeiconsIcon icon={Settings01Icon} className="h-5 w-5" />
+      <div className="mt-auto pt-4 border-t border-[#e1e5f2]">
+        {/* Keyboard shortcut hint — click to open the full reference */}
+        <button
+          type="button"
+          onClick={() => {
+            // Synthesize the same Cmd/Ctrl + / event the KeyboardHelp listener handles
+            document.dispatchEvent(
+              new KeyboardEvent("keydown", {
+                key: "/",
+                ctrlKey: true,
+                metaKey: true,
+                bubbles: true,
+              }),
+            );
+          }}
+          aria-label="Show keyboard shortcuts"
+          className="mb-2 flex w-full items-center justify-between rounded-lg px-3 py-2 text-xs text-[#022b3a]/60 hover:bg-[#e1e5f2]/50 hover:text-[#022b3a] transition-[color,background-color]"
+        >
+          <span>Shortcuts</span>
+          <span className="flex items-center gap-1">
+            <kbd className="rounded border border-[#e1e5f2] bg-white px-1.5 py-0.5 font-mono text-[10px] font-semibold text-[#022b3a]">⌘</kbd>
+            <kbd className="rounded border border-[#e1e5f2] bg-white px-1.5 py-0.5 font-mono text-[10px] font-semibold text-[#022b3a]">/</kbd>
+          </span>
         </button>
-        <button className="rounded-lg p-2.5 text-[#022b3a]/60 hover:bg-[#e1e5f2]/50 hover:text-[#022b3a] transition-[color,background-color]">
-          <HugeiconsIcon icon={MoonIcon} className="h-5 w-5" />
-        </button>
+
+        <div className="flex items-center justify-between">
+          <button className="rounded-lg p-2.5 text-[#022b3a]/60 hover:bg-[#e1e5f2]/50 hover:text-[#022b3a] transition-[color,background-color]">
+            <HugeiconsIcon icon={Settings01Icon} className="h-5 w-5" />
+          </button>
+          <button className="rounded-lg p-2.5 text-[#022b3a]/60 hover:bg-[#e1e5f2]/50 hover:text-[#022b3a] transition-[color,background-color]">
+            <HugeiconsIcon icon={MoonIcon} className="h-5 w-5" />
+          </button>
+        </div>
       </div>
     </aside>
   );
