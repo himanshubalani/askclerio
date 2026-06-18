@@ -23,6 +23,15 @@ The result: pressing `r` on a focused thread opens a pre-filled chat to Clerio. 
 
 ---
 
+#### Progress Shared on Social Media
+Part 1 on Twitter(X) - https://x.com/himanshubalani5/status/2064045836229857725?s=20
+
+Part 2 on Instagram - https://www.instagram.com/reel/DZiPNQHOAhh/?igsh=MXB0cGN6dGljbGtodA==
+
+Part 3 on Youtube - https://youtu.be/RADk2_KiStk
+
+Part 3 on Twitter(X) - https://x.com/himanshubalani5/status/2067684906369786208?s=20
+
 ## Key features
 
 ### Gmail
