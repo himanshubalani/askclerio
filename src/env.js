@@ -7,7 +7,8 @@ export const env = createEnv({
     DATABASE_URL: z.string().url(),
     NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
     CLERK_SECRET_KEY: z.string(),
-    OPENAI_API_KEY: z.string(), // <-- Add this
+    OPENAI_API_KEY: z.string(),
+    OPENAI_MODEL: z.string().default("gpt-4o-mini"),
   },
   client: {
     NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string(),
@@ -17,7 +18,8 @@ export const env = createEnv({
     NODE_ENV: process.env.NODE_ENV,
     CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY,
     NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
-    OPENAI_API_KEY: process.env.OPENAI_API_KEY, // <-- Expose to server
+    OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+    OPENAI_MODEL: process.env.OPENAI_MODEL,
   },
   skipValidation: !!process.env.SKIP_ENV_VALIDATION,
   emptyStringAsUndefined: true,

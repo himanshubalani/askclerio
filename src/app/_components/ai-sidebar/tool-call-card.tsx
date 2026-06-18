@@ -83,7 +83,7 @@ export function ToolCallCard({
           
           <span className="text-xs font-medium text-[#022b3a] truncate">
             {isAwaiting && `Approve ${metadata.displayName}?`}
-            {isRunning && `Executing ${metadata.displayName}...`}
+            {isRunning && `${metadata.displayName}...`}
             {isFailed && `Failed: ${metadata.displayName}`}
             {!isAwaiting && !isRunning && !isFailed && toolCall.displayName}
           </span>

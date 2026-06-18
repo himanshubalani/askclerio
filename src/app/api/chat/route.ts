@@ -4,6 +4,7 @@ import { openai } from '@ai-sdk/openai';
 import { createVercelAiMcpClient } from '@corsair-dev/mcp';
 import { auth } from '@clerk/nextjs/server';
 import { buildSystemPrompt } from '@/server/ai/system-prompt';
+import { env } from '@/env';
 
 export const maxDuration = 60; // Allow longer execution for multi-step tool calls
 
@@ -60,7 +61,7 @@ export async function POST(req: Request) {
   const toolsWithApproval = mcpTools;
 
   const result = streamText({
-    model: openai('gpt-4o-mini'),
+    model: openai(env.OPENAI_MODEL),
     messages,
     system: systemPrompt,
     tools: toolsWithApproval,
