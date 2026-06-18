@@ -1,6 +1,7 @@
 import { Sidebar } from "@/app/_components/sidebar";
 import { AISidebarProvider } from "@/app/_components/ai-sidebar/provider";
 import { AISidebarPanel } from "@/app/_components/ai-sidebar/panel";
+import { KeyboardHelp } from "@/app/_components/keyboard-help";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -16,6 +17,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </main>
         <AISidebarPanel />
       </div>
+      <KeyboardHelp />
     </AISidebarProvider>
   );
 }

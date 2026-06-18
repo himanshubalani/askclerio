@@ -19,8 +19,8 @@ export default async function LandingPage() {
         </div>
 
         <h1 className="text-5xl sm:text-6xl font-bold text-[#022b3a] tracking-tight max-w-3xl text-balance leading-[1.1] mb-6">
-          Inbox zero.{" "}
-          <span className="text-[#1f7a8c]">Calendar clarity.</span>{" "}
+          Agent based {" "}
+          <span className="text-[#1f7a8c]">productivity suite.</span>{" "}
           All in one place.
         </h1>
 
@@ -42,7 +42,7 @@ export default async function LandingPage() {
           </SignInButton>
         </div>
 
-        {/* Hero image placeholder */}
+        {/* Hero image */}
         <div className="mt-16 w-full max-w-4xl rounded-2xl shadow-[0_8px_40px_rgba(2,43,58,0.08),0_2px_8px_rgba(2,43,58,0.04)] bg-[#fcfcfc] overflow-hidden">
           <div className="flex items-center gap-1.5 px-4 py-3 border-b border-[#e1e5f2] bg-white">
             <div className="h-2.5 w-2.5 rounded-full bg-[#e1e5f2]" />
@@ -50,15 +50,14 @@ export default async function LandingPage() {
             <div className="h-2.5 w-2.5 rounded-full bg-[#e1e5f2]" />
             <div className="mx-auto h-5 w-48 rounded-full bg-[#e1e5f2]" />
           </div>
-          <div className="h-72 flex items-center justify-center">
-            <Image
-              src="/clerio logo mark dark.svg"
-              alt="Clerio app preview"
-              width={56}
-              height={56}
-              className="opacity-10 outline outline-1 outline-[rgba(0,0,0,0.1)] rounded-md"
-            />
-          </div>
+          <Image
+            src="/hero-demo.png"
+            alt="Clerio app preview"
+            width={1920}
+            height={1080}
+            priority
+            className="h-auto w-full"
+          />
         </div>
       </section>
 

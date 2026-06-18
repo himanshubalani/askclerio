@@ -2,7 +2,8 @@
 "use client";
 
 import { HugeiconsIcon } from "@hugeicons/react";
-import { AlertCircleIcon, Calendar01Icon, InboxIcon, Loading02Icon, MoonIcon, SentIcon, Settings01Icon, SparklesIcon, StarIcon, Tag01Icon } from "@hugeicons/core-free-icons";
+import { AlertCircleIcon, Calendar01Icon, InboxIcon, Loading02Icon, MoonIcon, SentIcon, Settings01Icon, StarIcon, Tag01Icon } from "@hugeicons/core-free-icons";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { api } from "@/trpc/react";
@@ -35,7 +36,7 @@ export function Sidebar() {
         aria-label="Toggle AI Assistant"
         className="mb-8 flex items-center justify-center gap-2 rounded-xl bg-[#022b3a] px-4 py-3 font-medium text-white hover:bg-[#1f7a8c] hover:shadow-[0_2px_8px_rgba(2,43,58,0.12)] active:scale-[0.96] transition-[transform,background-color,box-shadow]"
       >
-        <HugeiconsIcon icon={SparklesIcon} className="h-4 w-4" />
+        <Image src="/clerio_logo_no_bg_white.svg" alt="" width={16} height={16} className="h-4 w-4" />
         Ask Clerio
       </button>
 

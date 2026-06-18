@@ -12,16 +12,16 @@ import {
   MailOpen01Icon,
   MailReply01Icon,
 } from "@hugeicons/core-free-icons";
-import { use, useEffect, useRef, useState } from "react";
+import { use, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/trpc/react";
+import { useAISidebar } from "@/app/_components/ai-sidebar/provider";
 
 export default function ThreadView({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
   const utils = api.useUtils();
-
-  const [chatIntent, setChatIntent] = useState("");
+  const { sendPrefill } = useAISidebar();
 
   const { data: thread, isLoading } = api.gmail.getThread.useQuery({ threadId: id });
 
@@ -68,8 +68,66 @@ export default function ThreadView({ params }: { params: Promise<{ id: string }>
     }
   };
 
-  const handleReply = () => setChatIntent("Reply to this email saying: ");
-  const handleForward = () => setChatIntent("Forward this email to: ");
+  const handleReply = () => {
+    const subject = thread?.subject ?? "this email";
+    const sender = thread?.messages[thread.messages.length - 1]?.from ?? "the sender";
+    sendPrefill(
+      `Draft a reply to the latest message in the email thread "${subject}" (thread id: ${id}) from ${sender}. The reply should say: `,
+    );
+  };
+
+  const handleForward = () => {
+    const subject = thread?.subject ?? "this email";
+    sendPrefill(
+      `Forward the email thread "${subject}" (thread id: ${id}) to: `,
+    );
+  };
+
+  // Page-level keyboard shortcuts: e archive, # trash, r reply, u/Esc back
+  useEffect(() => {
+    function isEditableTarget(target: EventTarget | null): boolean {
+      if (!target || !(target instanceof HTMLElement)) return false;
+      const tag = target.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return true;
+      if (target.isContentEditable) return true;
+      return false;
+    }
+
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (isEditableTarget(e.target)) return;
+
+      switch (e.key) {
+        case "e":
+          e.preventDefault();
+          if (!archiveMut.isPending) archiveMut.mutate({ threadId: id });
+          break;
+        case "#":
+          e.preventDefault();
+          if (!trashMut.isPending) trashMut.mutate({ threadId: id });
+          break;
+        case "r":
+          e.preventDefault();
+          handleReply();
+          break;
+        case "f":
+          e.preventDefault();
+          handleForward();
+          break;
+        case "u":
+        case "Escape":
+          e.preventDefault();
+          router.back();
+          break;
+        default:
+          break;
+      }
+    }
+
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, archiveMut.isPending, trashMut.isPending, thread]);
 
   return (
     <div className="flex h-full flex-col antialiased">
