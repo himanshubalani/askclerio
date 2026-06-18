@@ -99,9 +99,6 @@ The result: pressing `r` on a focused thread opens a pre-filled chat to Clerio. 
 - ✅ **Corsair MCP agent chat** — full tool calling for sending emails and creating calendar invites
 - ✅ **Realtime webhooks endpoint** — `/api/webhooks` wired through `processWebhook`
 - ✅ **Keyboard shortcuts** — Superhuman-style list navigation and thread actions
-- ⚠️ **Priority filtering** — Drizzle schema (`emailAiMeta.priority`, `priorityReason`) is in place; LLM classification pipeline pending
-- ⚠️ **Vector search** — `pgvector` columns (1536-dim) seeded in `emailAiMeta` and `calendarAiMeta`; embedding write-path pending
-- ❌ **Corsair search API UI** — out of scope for the hackathon window
 
 ---
 
@@ -207,13 +204,6 @@ src/
 
 ---
 
-## Deployment
-
-The app is deployable to Vercel for the Next.js front end. The MCP Express server can run on Vercel as a separate Node service, on Render, Railway, or co-located on a small VM. Set `CORSAIR_MCP_URL` in the Next.js environment to point at the deployed MCP server.
-
-`next.config.js` includes `serverExternalPackages` for `@corsair-dev/mcp`, `express`, `import-in-the-middle`, and `require-in-the-middle` so the Next build doesn't try to bundle them.
-
----
 
 ## License
 
