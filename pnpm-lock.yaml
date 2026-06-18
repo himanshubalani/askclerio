@@ -34,7 +34,7 @@ importers:
         version: 0.1.4(@types/node@20.19.43)(corsair@0.1.76(postgres@3.4.9))(zod@4.4.3)
       '@corsair-dev/mcp':
         specifier: ^0.1.22
-        version: 0.1.22(@ai-sdk/mcp@1.0.52(zod@4.4.3))(@openai/agents@0.11.6(ws@8.21.0)(zod@4.4.3))(openai@6.42.0(ws@8.21.0)(zod@4.4.3))(postgres@3.4.9)
+        version: 0.1.22(@ai-sdk/mcp@1.0.52(zod@4.4.3))(@openai/agents@0.11.6(ws@8.21.0)(zod@4.4.3))(openai@6.44.0(ws@8.21.0)(zod@4.4.3))(postgres@3.4.9)
       '@hugeicons/core-free-icons':
         specifier: ^4.2.0
         version: 4.2.0
@@ -81,14 +81,14 @@ importers:
         specifier: ^0.41.0
         version: 0.41.0(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(gel@2.2.0)(kysely@0.28.17)(pg@8.21.0)(postgres@3.4.9)
       express:
-        specifier: ^5.2.1
-        version: 5.2.1
+        specifier: ^4.22.2
+        version: 4.22.2
       import-in-the-middle:
         specifier: ^3.0.2
         version: 3.0.2
       inngest:
         specifier: ^4.5.1
-        version: 4.5.1(@opentelemetry/core@2.8.0(@opentelemetry/api@1.9.1))(express@5.2.1)(hono@4.12.25)(next@15.5.19(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react@19.2.7)(typescript@5.9.3)(zod@4.4.3)
+        version: 4.5.1(@opentelemetry/core@2.8.0(@opentelemetry/api@1.9.1))(express@4.22.2)(hono@4.12.25)(next@15.5.19(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react@19.2.7)(typescript@5.9.3)(zod@4.4.3)
       install:
         specifier: ^0.13.0
         version: 0.13.0
@@ -98,6 +98,9 @@ importers:
       next:
         specifier: ^15.2.3
         version: 15.5.19(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      openai:
+        specifier: ^6.44.0
+        version: 6.44.0(ws@8.21.0)(zod@4.4.3)
       pg:
         specifier: ^8.21.0
         version: 8.21.0
@@ -4891,8 +4894,8 @@ packages:
     resolution: {integrity: sha512-kbpaSSGJTWdAY5KPVeMOKXSrPtr8C8C7wodJbcsd51jRnmD+GZu8Y0VoU6Dm5Z4vWr0Ig/1NKuWRKf7j5aaYSg==}
     engines: {node: '>=6'}
 
-  openai@6.42.0:
-    resolution: {integrity: sha512-1WFEt/uXMXOLhYRNkgJWo08Y2YNvNwpVU72K7ibrWgWpNOXd4VojXLbe6SQ4bLiUQ3Y8jz4IiyVkylJCL1DtZg==}
+  openai@6.44.0:
+    resolution: {integrity: sha512-09/gH+8jH0RgUwsgWHAaxsKGRT5zVZ95IaJUnqAWj6XejIBmnFRwq2WUIF37VtDEsmGrtPmvCs5+yBSeZGWvkA==}
     peerDependencies:
       ws: ^8.18.0
       zod: ^3.25 || ^4.0
@@ -6362,7 +6365,7 @@ snapshots:
       - supports-color
       - ts-node
 
-  '@corsair-dev/mcp@0.1.22(@ai-sdk/mcp@1.0.52(zod@4.4.3))(@openai/agents@0.11.6(ws@8.21.0)(zod@4.4.3))(openai@6.42.0(ws@8.21.0)(zod@4.4.3))(postgres@3.4.9)':
+  '@corsair-dev/mcp@0.1.22(@ai-sdk/mcp@1.0.52(zod@4.4.3))(@openai/agents@0.11.6(ws@8.21.0)(zod@4.4.3))(openai@6.44.0(ws@8.21.0)(zod@4.4.3))(postgres@3.4.9)':
     dependencies:
       '@modelcontextprotocol/sdk': 1.29.0(zod@4.4.3)
       corsair: 0.1.75(postgres@3.4.9)
@@ -6371,7 +6374,7 @@ snapshots:
     optionalDependencies:
       '@ai-sdk/mcp': 1.0.52(zod@4.4.3)
       '@openai/agents': 0.11.6(ws@8.21.0)(zod@4.4.3)
-      openai: 6.42.0(ws@8.21.0)(zod@4.4.3)
+      openai: 6.44.0(ws@8.21.0)(zod@4.4.3)
     transitivePeerDependencies:
       - '@cfworker/json-schema'
       - postgres
@@ -7099,7 +7102,7 @@ snapshots:
   '@openai/agents-core@0.11.6(ws@8.21.0)(zod@4.4.3)':
     dependencies:
       debug: 4.4.3
-      openai: 6.42.0(ws@8.21.0)(zod@4.4.3)
+      openai: 6.44.0(ws@8.21.0)(zod@4.4.3)
     optionalDependencies:
       '@modelcontextprotocol/sdk': 1.29.0(zod@4.4.3)
       zod: 4.4.3
@@ -7112,7 +7115,7 @@ snapshots:
     dependencies:
       '@openai/agents-core': 0.11.6(ws@8.21.0)(zod@4.4.3)
       debug: 4.4.3
-      openai: 6.42.0(ws@8.21.0)(zod@4.4.3)
+      openai: 6.44.0(ws@8.21.0)(zod@4.4.3)
       zod: 4.4.3
     transitivePeerDependencies:
       - '@cfworker/json-schema'
@@ -7138,7 +7141,7 @@ snapshots:
       '@openai/agents-openai': 0.11.6(ws@8.21.0)(zod@4.4.3)
       '@openai/agents-realtime': 0.11.6(zod@4.4.3)
       debug: 4.4.3
-      openai: 6.42.0(ws@8.21.0)(zod@4.4.3)
+      openai: 6.44.0(ws@8.21.0)(zod@4.4.3)
       zod: 4.4.3
     transitivePeerDependencies:
       - '@cfworker/json-schema'
@@ -10200,7 +10203,7 @@ snapshots:
 
   inherits@2.0.4: {}
 
-  inngest@4.5.1(@opentelemetry/core@2.8.0(@opentelemetry/api@1.9.1))(express@5.2.1)(hono@4.12.25)(next@15.5.19(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react@19.2.7)(typescript@5.9.3)(zod@4.4.3):
+  inngest@4.5.1(@opentelemetry/core@2.8.0(@opentelemetry/api@1.9.1))(express@4.22.2)(hono@4.12.25)(next@15.5.19(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react@19.2.7)(typescript@5.9.3)(zod@4.4.3):
     dependencies:
       '@bufbuild/protobuf': 2.12.0
       '@inngest/ai': 0.1.7
@@ -10227,7 +10230,7 @@ snapshots:
       ulid: 2.4.0
       zod: 4.4.3
     optionalDependencies:
-      express: 5.2.1
+      express: 4.22.2
       hono: 4.12.25
       next: 15.5.19(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       react: 19.2.7
@@ -11115,7 +11118,7 @@ snapshots:
     dependencies:
       mimic-fn: 2.1.0
 
-  openai@6.42.0(ws@8.21.0)(zod@4.4.3):
+  openai@6.44.0(ws@8.21.0)(zod@4.4.3):
     optionalDependencies:
       ws: 8.21.0
       zod: 4.4.3

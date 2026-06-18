@@ -1,7 +1,4 @@
-CREATE TYPE "public"."email_priority" AS ENUM('high', 'normal', 'low');--> statement-breakpoint
-CREATE TYPE "public"."chat_message_role" AS ENUM('user', 'assistant', 'system', 'tool');--> statement-breakpoint
-CREATE TYPE "public"."tool_call_status" AS ENUM('draft', 'awaiting_confirmation', 'running', 'done', 'cancelled', 'failed');--> statement-breakpoint
-CREATE TYPE "public"."tool_trust_mode" AS ENUM('ask_every_time', 'auto_run');--> statement-breakpoint
+--> statement-breakpoint
 CREATE TABLE "askclerio_calendar_ai_meta" (
 	"id" text PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"user_id" text NOT NULL,

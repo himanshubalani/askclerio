@@ -1,3 +1,4 @@
+// src/app/api/chat/route.ts
 import { stepCountIs, streamText } from 'ai';
 import { openai } from '@ai-sdk/openai';
 import { createVercelAiMcpClient } from '@corsair-dev/mcp';
@@ -17,23 +18,29 @@ export async function POST(req: Request) {
     return new Response('Unauthorized', { status: 401 });
   }
 
-  // Read conversation ID from headers (passed by the client's useChat)
-  // Used in task 10.2 for persisting messages to the conversation
   const _conversationId = req.headers.get('x-conversation-id') ?? undefined;
 
-  // Connect to the local MCP server
-  const mcpUrl = process.env.NEXT_PUBLIC_APP_URL
-    ? `${process.env.NEXT_PUBLIC_APP_URL}/mcp`
-    : 'http://localhost:3001/mcp';
+  const mcpUrl = process.env.MCP_URL || 'http://localhost:3001/mcp';
 
-  const mcpClient = await createVercelAiMcpClient({
-    url: mcpUrl,
-  });
+  let mcpClient;
+  let mcpTools;
+  try {
+    mcpClient = await createVercelAiMcpClient({
+      url: mcpUrl,
+      headers: {
+        'x-mcp-internal-token': process.env.MCP_INTERNAL_TOKEN || "YWdXy/fqdMnH1VfPZ7BBcxAUOC2uYs8KPe+1+VFJoU4="
+      }
+    });
 
-  // Get MCP tools (corsair_setup, list_operations, get_schema, run_script)
-  const mcpTools = await mcpClient.tools();
+    mcpTools = await mcpClient.tools();
+  } catch (err) {
+    console.error('[chat/route] MCP connection failed:', err instanceof Error ? err.message : err);
+    return new Response(
+      JSON.stringify({ error: 'MCP server unavailable. Ensure the Corsair MCP server is running on ' + mcpUrl }),
+      { status: 503, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
 
-  // Fetch user's per-tool trust settings from DB
   const userSettings = await db
     .select({ toolName: chatToolSettings.toolName, trustMode: chatToolSettings.trustMode })
     .from(chatToolSettings)
@@ -44,10 +51,6 @@ export async function POST(req: Request) {
     trustMode: s.trustMode,
   }));
 
-  // Build tools with needsApproval based on policy
-  // Note: The MCP client returns tools already formatted for the AI SDK.
-  // We log the approval map for debugging but the actual approval gating
-  // happens via the SDK's native mechanism when tools define needsApproval.
   const _approvalInfo = Object.keys(mcpTools).reduce(
     (acc, toolName) => {
       acc[toolName] = resolveNeedsApproval(toolName, userToolSettings);
@@ -74,13 +77,21 @@ IMPORTANT INSTRUCTIONS FOR run_script:
    
 Execute actions immediately without asking for permission if the user's intent is clear. Act quickly and confidently.`;
 
+
+  const toolsWithApproval = Object.fromEntries(
+    Object.entries(mcpTools).map(([name, tool]) => [
+      name,
+      { ...tool, needsApproval: _approvalInfo[name] ?? tool.needsApproval },
+    ]),
+  );
+
   const result = streamText({
-    model: openai('gpt-3.5-turbo'),
+    model: openai('gpt-4o'),
     messages,
     system: systemPrompt,
-    tools: mcpTools,
+    tools: toolsWithApproval,
     stopWhen: stepCountIs(5),
   });
 
-  return result.toUIMessageStreamResponse();
+  return result.toTextStreamResponse();
 }

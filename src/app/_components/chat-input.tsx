@@ -1,7 +1,7 @@
+// src/app/_components/chat-input.tsx
 "use client";
 
 import { useChat } from "@ai-sdk/react";
-import { DefaultChatTransport } from "ai";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { 
   ArrowUp01Icon, 
@@ -15,11 +15,9 @@ export function ChatInput({ initialValue = "" }: { initialValue?: string }) {
   const [input, setInput] = useState(initialValue);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Initializing with the new DefaultChatTransport and extracting status/controls
-  const { messages, sendMessage, status, stop, error, regenerate } = useChat({
-    transport: new DefaultChatTransport({
-      api: '/api/chat',
-    }),
+  // Standard AI SDK hook connection
+  const { messages, append, status, stop, error, reload } = useChat({
+    api: '/api/chat',
   });
 
   // Auto-resize logic
@@ -40,9 +38,12 @@ export function ChatInput({ initialValue = "" }: { initialValue?: string }) {
     }
   }, [initialValue]);
 
+  const isStreaming = status === "submitted" || status === "streaming";
+  const isActive = input.trim().length > 0;
+
   const submitMessage = () => {
-    if (input.trim() && (status === 'ready' || status === 'error')) {
-      sendMessage({ text: input });
+    if (input.trim() && !isStreaming) {
+      append({ role: "user", content: input });
       setInput("");
       if (textareaRef.current) textareaRef.current.style.height = "44px";
     }
@@ -55,9 +56,6 @@ export function ChatInput({ initialValue = "" }: { initialValue?: string }) {
       submitMessage();
     }
   };
-
-  const isActive = input.trim().length > 0;
-  const isStreaming = status === "submitted" || status === "streaming";
 
   return (
     <div className="w-full max-w-3xl mx-auto px-4 pb-6 pt-2 flex flex-col gap-4">
@@ -81,36 +79,19 @@ export function ChatInput({ initialValue = "" }: { initialValue?: string }) {
                 </div>
               )}
 
-              {/* Render using the new "parts" API */}
-              <div className="flex flex-col gap-2">
-                {m.parts?.map((part, index) => {
-                  if (part.type === "text") {
-                    return <div key={index} className="whitespace-pre-wrap">{part.text}</div>;
-                  }
-                  
-                  // Gracefully handle reasoning tokens if you ever use DeepSeek/Claude-Sonnet
-                  if (part.type === "reasoning") {
-                    return (
-                      <div key={index} className="text-xs text-[#022b3a]/50 italic border-l-2 border-[#e1e5f2] pl-3 py-1 my-1">
-                        {part.text}
-                      </div>
-                    );
-                  }
-                  return null;
-                })}
-              </div>
+              {/* Render Standard Text Content */}
+              {m.content && <div className="whitespace-pre-wrap">{m.content}</div>}
 
-              {/* Render Tool Invocations Gracefully (AI SDK 6 parts API) */}
-              {m.parts?.filter((p) => p.type === "tool-invocation").map((toolPart) => {
-                const toolInv = toolPart as unknown as { type: "tool-invocation"; toolInvocation: { toolCallId: string; toolName: string; state: string } };
+              {/* Render Tool Invocations Accurately */}
+              {m.toolInvocations?.map((toolInv) => {
                 return (
-                  <div key={toolInv.toolInvocation.toolCallId} className="mt-3 p-2.5 bg-[#fcfcfc] rounded-lg border border-[#e1e5f2] text-xs text-[#1f7a8c] font-medium font-mono flex items-center gap-2">
-                    {toolInv.toolInvocation.state === 'result' ? '✓' : (
+                  <div key={toolInv.toolCallId} className="mt-3 p-2.5 bg-[#fcfcfc] rounded-lg border border-[#e1e5f2] text-xs text-[#1f7a8c] font-medium font-mono flex items-center gap-2">
+                    {toolInv.state === 'result' ? '✓' : (
                       <div className="h-2 w-2 rounded-full bg-[#1f7a8c] animate-pulse shrink-0" />
                     )}
-                    {toolInv.toolInvocation.state === 'result' 
-                      ? `Executed: ${toolInv.toolInvocation.toolName}` 
-                      : `Running: ${toolInv.toolInvocation.toolName}...`}
+                    {toolInv.state === 'result' 
+                      ? `Executed: ${toolInv.toolName}` 
+                      : `Running: ${toolInv.toolName}...`}
                   </div>
                 );
               })}
@@ -125,7 +106,7 @@ export function ChatInput({ initialValue = "" }: { initialValue?: string }) {
                 Something went wrong connecting to the Agent.
               </div>
               <button
-                onClick={() => regenerate()}
+                onClick={() => reload()}
                 className="px-4 py-1.5 bg-white border border-red-200 rounded-md hover:bg-red-50 transition-[background-color] font-medium shadow-sm"
               >
                 Retry
@@ -149,7 +130,7 @@ export function ChatInput({ initialValue = "" }: { initialValue?: string }) {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={onKeyDown}
-            disabled={status !== 'ready' && status !== 'error'}
+            disabled={status !== 'ready' && status !== 'error' && isStreaming}
             placeholder={isStreaming ? "Clerio is executing..." : "Ask Clerio to send an email or schedule a meeting..."}
             className="w-full resize-none bg-transparent px-3 py-2 text-[15px] leading-relaxed text-[#022b3a] placeholder:text-[#022b3a]/40 focus:outline-none disabled:opacity-50"
             style={{ minHeight: "44px", maxHeight: "200px" }}

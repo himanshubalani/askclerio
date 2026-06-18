@@ -220,9 +220,6 @@ export default function GmailDashboard() {
         )}
       </div>
 
-      <div className="shrink-0 bg-gradient-to-t from-white via-white to-transparent pt-4">
-        <ChatInput />
-      </div>
     </>
   );
 }

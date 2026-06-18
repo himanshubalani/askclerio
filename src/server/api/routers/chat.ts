@@ -1,5 +1,7 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
+import { TRPCError } from "@trpc/server";
+import { getToolClassification } from "@/server/ai/tools/policy";
 import {
   chatConversations,
   chatMessages,
@@ -146,6 +148,16 @@ export const chatRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      // Server-side validation: prevent write tools being set to `auto_run`.
+      // The client already disables this option in the UI, but we must
+      // enforce it on the server to prevent bypass via direct API calls.
+      const classification = getToolClassification(input.toolName);
+      if (classification === "write" && input.trustMode === "auto_run") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Write tools cannot be set to auto_run",
+        });
+      }
       // Check if setting already exists for this user + toolName
       const existing = await ctx.db
         .select()

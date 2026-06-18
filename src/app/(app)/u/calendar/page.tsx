@@ -303,10 +303,6 @@ export default function CalendarDashboard() {
         )}
       </div>
 
-      <div className="shrink-0 bg-white">
-        <ChatInput />
-      </div>
-
       <CreateMeetingModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
