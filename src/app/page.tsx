@@ -1,55 +1,83 @@
 import { SignUpButton, SignInButton } from "@clerk/nextjs";
 import { auth } from "@clerk/nextjs/server";
-import { redirect } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
+import { LandingHeader } from "@/app/_components/landing-header";
 
 export default async function LandingPage() {
   const { userId } = await auth();
 
-  // Redirect signed-in users straight to the app
-  if (userId) redirect("/u");
-
   return (
-    <main className="min-h-[calc(100vh-4rem)] bg-white selection:bg-[#bfdbf7] selection:text-[#022b3a]">
+    <>
+    <LandingHeader />
+    <main className="min-h-screen bg-white selection:bg-[#bfdbf7] selection:text-[#022b3a]">
 
       {/* Hero */}
-      <section className="flex flex-col items-center justify-center text-center px-6 pt-24 pb-20">
+      <section className="relative overflow-hidden flex flex-col items-center justify-center text-center px-6 pt-24 pb-20 dark:bg-black">
+
+        <Image
+        src="/hero-bg.png"
+        alt="Hero background"
+        fill
+        priority
+        className="object-cover pointer-events-none z-0 block dark:hidden"
+      />
+              <Image
+        src="/hero-bgd.png"
+        alt="Hero background"
+        fill
+        priority
+        className="object-cover pointer-events-none z-0 hidden dark:block"
+      />
+
+      <div className="relative z-10 flex flex-col items-center justify-center w-full">
         <div className="inline-flex items-center gap-2 rounded-full border border-[#bfdbf7] bg-[#f0f7ff] px-4 py-1.5 text-xs font-medium text-[#1f7a8c] mb-8">
           ✦ Your AI-powered command center
         </div>
 
-        <h1 className="text-5xl sm:text-6xl font-bold text-[#022b3a] tracking-tight max-w-3xl text-balance leading-[1.1] mb-6">
-          Agent based {" "}
-          <span className="text-[#1f7a8c]">productivity suite.</span>{" "}
+        <h1 className="text-5xl sm:text-6xl font-bold text-[#022b3b] tracking-tight max-w-3xl text-balance leading-[1.1] mb-6">
+          Manage your inbox {" "}
+          <span className="text-[#022b3b]">and your day.</span>{" "}
           All in one place.
         </h1>
 
-        <p className="text-lg text-[#022b3a]/60 max-w-xl text-pretty mb-10">
+        <p className="text-lg text-[#022b3b]/80 max-w-xl text-pretty mb-10">
           Clerio connects your Gmail and Google Calendar, then puts an AI assistant 
-          on top — so you can triage, reply, and plan without switching tabs.
+          on top so you can triage, reply, and plan without switching tabs.
         </p>
 
         <div className="flex flex-wrap items-center justify-center gap-3">
-          <SignUpButton>
-            <button className="h-11 px-6 rounded-xl bg-[#022b3a] text-white font-medium text-sm hover:bg-[#1f7a8c] shadow-[0_2px_8px_rgba(2,43,58,0.12),0_1px_2px_rgba(2,43,58,0.08)] hover:shadow-[0_4px_16px_rgba(2,43,58,0.16),0_2px_4px_rgba(2,43,58,0.1)] active:scale-[0.96] transition-[transform,background-color,box-shadow]">
-              Get started for free
-            </button>
-          </SignUpButton>
-          <SignInButton>
-            <button className="h-11 px-6 rounded-xl border border-[#e1e5f2] text-[#022b3a] font-medium text-sm hover:bg-[#f0f7ff] active:scale-[0.96] transition-[transform,background-color]">
-              Sign in
-            </button>
-          </SignInButton>
+          {userId ? (
+            <Link
+              href="/u"
+              className="h-11 px-6 rounded-xl bg-[#022b3a] text-white font-medium text-sm hover:bg-[#1f7a8c] shadow-[0_2px_8px_rgba(2,43,58,0.12),0_1px_2px_rgba(2,43,58,0.08)] hover:shadow-[0_4px_16px_rgba(2,43,58,0.16),0_2px_4px_rgba(2,43,58,0.1)] active:scale-[0.96] transition-[transform,background-color,box-shadow] flex items-center"
+            >
+              Go to Dashboard
+            </Link>
+          ) : (
+            <>
+              <SignUpButton>
+                <button className="h-11 px-6 rounded-xl bg-[#022b3a] text-white font-medium text-sm hover:bg-[#1f7a8c] shadow-[0_2px_8px_rgba(2,43,58,0.12),0_1px_2px_rgba(2,43,58,0.08)] hover:shadow-[0_4px_16px_rgba(2,43,58,0.16),0_2px_4px_rgba(2,43,58,0.1)] active:scale-[0.96] transition-[transform,background-color,box-shadow]">
+                  Get started for free
+                </button>
+              </SignUpButton>
+              <SignInButton>
+                <button className="h-11 px-6 rounded-xl border border-[#e1e5f2] bg-[#f0f7ff] text-[#022b3a] font-medium text-sm hover:bg-[#bfdbf7] active:scale-[0.96] transition-[transform,background-color]">
+                  Sign in
+                </button>
+              </SignInButton>
+            </>
+          )}
         </div>
 
         {/* Hero image */}
-        <div className="mt-16 w-full max-w-4xl rounded-2xl shadow-[0_8px_40px_rgba(2,43,58,0.08),0_2px_8px_rgba(2,43,58,0.04)] bg-[#fcfcfc] overflow-hidden">
-          <div className="flex items-center gap-1.5 px-4 py-3 border-b border-[#e1e5f2] bg-white">
-            <div className="h-2.5 w-2.5 rounded-full bg-[#e1e5f2]" />
-            <div className="h-2.5 w-2.5 rounded-full bg-[#e1e5f2]" />
-            <div className="h-2.5 w-2.5 rounded-full bg-[#e1e5f2]" />
-            <div className="mx-auto h-5 w-48 rounded-full bg-[#e1e5f2]" />
-          </div>
+        <div className="mt-16 w-full max-w-4xl rounded-2xl bg-[#fcfcfc] overflow-hidden">
+          {/* <div className="flex items-center gap-1.5 px-4 py-3 border-b border-[#e1e5f2] bg-white">
+            <div className="h-2.5 w-2.5 rounded-full bg-[#ff605c]" />
+            <div className="h-2.5 w-2.5 rounded-full bg-[#ffbd44]" />
+            <div className="h-2.5 w-2.5 rounded-full bg-[#00ca4e]" />
+            <div className="mx-auto h-4 w-72 rounded-full bg-[#e1e5f2] text-xs justify-center align-center text-[#2a2a2a]" >https://askclerio.dev</div>
+          </div> */}
           <Image
             src="/hero-demo.png"
             alt="Clerio app preview"
@@ -59,10 +87,11 @@ export default async function LandingPage() {
             className="h-auto w-full"
           />
         </div>
+        </div>
       </section>
 
       {/* Features */}
-      <section className="px-6 py-20 bg-[#fcfcfc] border-y border-[#e1e5f2]">
+      <section className="px-6 py-20 bg-[#fcfcfc] border-b border-[#e1e5f2]">
         <div className="max-w-4xl mx-auto">
           <h2 className="text-2xl font-bold text-[#022b3a] text-center mb-12">
             Everything you need, nothing you don&apos;t
@@ -122,16 +151,26 @@ export default async function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-[#e1e5f2] px-6 py-6 flex items-center justify-between text-xs text-[#022b3a]/40">
-        <Image
-          src="/clerio_header_light_mode.svg"
-          alt="Clerio"
-          width={64}
-          height={22}
-          className="outline outline-1 outline-[rgba(0,0,0,0.1)] rounded"
-        />
-        <span>© {new Date().getFullYear()} Clerio</span>
+      <footer className="border-t border-[#e1e5f2] px-6 py-8 bg-[#022b3b]">
+        <div className="mx-auto flex max-w-4xl flex-col items-center gap-4 sm:flex-row sm:justify-between">
+          <Image
+            src="/clerio_header_dark_mode.svg"
+            alt="Clerio"
+            width={128}
+            height={44}
+          />
+          <div className="flex items-center gap-6 text-xs text-[#f5f5f5]/50">
+            <a href="/privacy" className="hover:text-[#ffffff] transition-colors">
+              Privacy Policy
+            </a>
+            <a href="/terms" className="hover:text-[#ffffff] transition-colors">
+              Terms of Use
+            </a>
+            <span>© {new Date().getFullYear()} Clerio</span>
+          </div>
+        </div>
       </footer>
     </main>
+    </>
   );
 }

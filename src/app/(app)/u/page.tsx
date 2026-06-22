@@ -1,4 +1,3 @@
-// src/app/(app)/u/page.tsx
 "use client";
 
 import { useState, useMemo } from "react";
@@ -24,7 +23,6 @@ export default function GmailDashboard() {
   
   const syncMutation = api.gmail.syncLatest.useMutation({
     onSuccess: async () => {
-      // Invalidate the dashboard cache so it refetches fresh data
       await utils.gmail.getDashboardData.invalidate();
       await refetch();
     },
@@ -51,20 +49,18 @@ export default function GmailDashboard() {
     );
   }, [data?.threads, searchQuery]);
 
-  // 1. If not synced yet, show the Connect screen
   if (data?.needsAuth) {
     return (
-      <div className="flex flex-1 flex-col items-center justify-center bg-[#fcfcfc] antialiased">
-        <div className="flex max-w-lg flex-col items-center text-center p-8 rounded-3xl bg-white border border-[#e1e5f2] shadow-[0_4px_24px_rgba(2,43,58,0.04)]">
-          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#bfdbf7]/30 text-[#1f7a8c]">
-            <HugeiconsIcon icon={Mail01Icon} className="h-8 w-8 stroke-2" />
+      <div className="flex flex-1 flex-col items-center justify-center bg-gradient-to-br from-[#fafbfd] to-[#f0f4f8] antialiased">
+        <div className="flex max-w-md flex-col items-center text-center p-10 rounded-2xl bg-white border border-[#e8ecf4] shadow-[0_8px_32px_rgba(2,43,58,0.06)]">
+          <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-[#bfdbf7]/40 to-[#1f7a8c]/10 text-[#1f7a8c]">
+            <HugeiconsIcon icon={Mail01Icon} className="h-7 w-7 stroke-[1.8]" />
           </div>
-          <h2 className="mb-2 text-xl font-bold text-[#022b3a] text-balance">Connect your Workspace</h2>
-          <p className="mb-8 text-sm text-[#022b3a]/60 text-pretty">
+          <h2 className="mb-2 text-lg font-bold text-[#022b3a]">Connect your Workspace</h2>
+          <p className="mb-7 text-sm leading-relaxed text-[#022b3a]/55">
             Clerio needs access to your Gmail and Google Calendar to power your command center.
           </p>
-          
-          <div className="w-full space-y-3">
+          <div className="w-full">
             <GoogleOAuthConnection />
           </div>
         </div>
@@ -73,147 +69,169 @@ export default function GmailDashboard() {
   }
 
   return (
-    <>
-      <div className="flex-1 max-w-320 overflow-y-auto px-8 py-8 antialiased">
-        <header className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="flex-1 overflow-y-auto bg-gradient-to-br from-[#fafbfd] to-[#f5f7fa]">
+      <div className="mx-auto max-w-7xl px-6 py-8 md:px-10">
+        {/* Header */}
+        <header className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
-            <h1 className="text-2xl font-semibold text-[#022b3a] text-balance">Inbox</h1>
-            <p className="text-sm text-[#022b3a]/60 text-pretty mt-1 tabular-nums">
-              {isLoading ? "Loading..." : `${data?.threads?.length ?? 0} recent threads`}
+            <h1 className="text-[22px] font-bold tracking-tight text-[#022b3a]">Inbox</h1>
+            <p className="mt-0.5 text-[13px] tabular-nums text-[#022b3a]/50">
+              {isLoading ? "Loading..." : `${data?.threads?.length ?? 0} threads`}
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="relative flex items-center mr-2">
-              <HugeiconsIcon icon={Search01Icon} className="absolute left-3 h-4 w-4 text-[#022b3a]/40" />
+          <div className="flex items-center gap-2">
+            {/* Search */}
+            <div className="relative">
+              <HugeiconsIcon icon={Search01Icon} className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#022b3a]/35" />
               <input
                 type="text"
-                placeholder="Search inbox..."
+                placeholder="Search..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="h-9 w-full md:w-64 rounded-md border border-[#e1e5f2] bg-white pl-9 pr-3 text-sm text-[#022b3a] placeholder:text-[#022b3a]/40 focus:border-[#1f7a8c] focus:outline-none focus:ring-1 focus:ring-[#1f7a8c] transition-all shadow-sm"
+                className="h-8 w-48 rounded-lg border border-[#e8ecf4] bg-white pl-8 pr-3 text-[13px] text-[#022b3a] placeholder:text-[#022b3a]/35 shadow-sm transition-all focus:w-64 focus:border-[#1f7a8c]/40 focus:outline-none focus:ring-2 focus:ring-[#1f7a8c]/10"
               />
             </div>
             <button 
               onClick={() => syncMutation.mutate()}
               disabled={syncMutation.isPending || isFetching}
-              className="flex items-center gap-2 rounded-md border border-[#e1e5f2] bg-white px-3 py-1.5 text-sm font-medium text-[#022b3a] hover:bg-[#fcfcfc] transition-colors shadow-sm disabled:opacity-50 h-9"
+              className="flex h-8 items-center gap-1.5 rounded-lg border border-[#e8ecf4] bg-white px-3 text-[13px] font-medium text-[#022b3a]/70 shadow-sm transition-all hover:border-[#1f7a8c]/30 hover:text-[#022b3a] disabled:opacity-50"
             >
               {syncMutation.isPending && <HugeiconsIcon icon={Loading02Icon} className="h-3 w-3 animate-spin" />}
-              {syncMutation.isPending ? "Syncing..." : "Sync"}
+              Sync
             </button>
             <button 
               onClick={() => refetch()}
               disabled={isFetching || syncMutation.isPending}
-              className="flex items-center gap-2 rounded-md border border-[#e1e5f2] bg-white px-3 py-1.5 text-sm font-medium text-[#022b3a] hover:bg-[#fcfcfc] transition-colors shadow-sm disabled:opacity-50 h-9"
+              className="flex h-8 items-center gap-1.5 rounded-lg border border-[#e8ecf4] bg-white px-3 text-[13px] font-medium text-[#022b3a]/70 shadow-sm transition-all hover:border-[#1f7a8c]/30 hover:text-[#022b3a] disabled:opacity-50"
             >
               {isFetching && <HugeiconsIcon icon={Loading02Icon} className="h-3 w-3 animate-spin" />}
-              {isFetching ? "Refreshing..." : "Refresh"}
+              Refresh
             </button>
           </div>
         </header>
 
         {isLoading ? (
-          <div className="flex justify-center py-12">
-            <HugeiconsIcon icon={Loading02Icon} className="h-8 w-8 animate-spin text-[#1f7a8c]" />
+          <div className="flex justify-center py-20">
+            <HugeiconsIcon icon={Loading02Icon} className="h-6 w-6 animate-spin text-[#1f7a8c]/60" />
           </div>
         ) : (
-          <div className="flex flex-col gap-6">
-            {/* Labels Section */}
+          <div className="space-y-5">
+            {/* Labels */}
             {data?.labels && data.labels.length > 0 && !searchQuery && (
-              <div>
-                <h3 className="text-sm font-semibold text-[#022b3a]/60 mb-3">Labels</h3>
-                <div className="flex flex-wrap gap-2">
-                  {data.labels.map((label: { id: string; name: string }) => (
-                    <span
-                      key={label.id}
-                      className={`px-2.5 py-1 rounded-full text-xs font-medium border ${
-                        label.name === "IMPORTANT"
-                          ? "bg-red-50 border-red-200 text-red-700"
-                          : label.name === "STARRED"
-                          ? "bg-yellow-50 border-yellow-200 text-yellow-700"
-                          : label.name === "SENT"
-                          ? "bg-blue-50 border-blue-200 text-blue-700"
-                          : "bg-gray-50 border-gray-200 text-gray-700"
-                      }`}
-                    >
-                      {label.name}
-                    </span>
-                  ))}
-                </div>
+              <div className="flex flex-wrap items-center gap-1.5">
+                {data.labels.map((label: { id: string; name: string }) => (
+                  <span
+                    key={label.id}
+                    className={`rounded-md px-2 py-0.5 text-[11px] font-semibold ${
+                      label.name === "IMPORTANT"
+                        ? "bg-red-50 text-red-600"
+                        : label.name === "STARRED"
+                        ? "bg-amber-50 text-amber-600"
+                        : label.name === "SENT"
+                        ? "bg-sky-50 text-sky-600"
+                        : "bg-[#f0f4f8] text-[#022b3a]/60"
+                    }`}
+                  >
+                    {label.name}
+                  </span>
+                ))}
               </div>
             )}
 
-            <div className="flex flex-col gap-2">
+            {/* Thread List */}
+            <div className="rounded-xl border border-[#e8ecf4] bg-white shadow-[0_1px_4px_rgba(2,43,58,0.03)] overflow-hidden">
               {filteredThreads.map((thread, i) => {
-              const isUnread = thread.labels.includes("UNREAD");
-              
-              return (
-                <Link 
-                  href={`/thread/${thread.id}`}
-                  key={thread.id} 
-                  className={`flex items-center gap-4 rounded-xl border p-4 transition-all hover:border-[#bfdbf7] hover:shadow-[0_2px_8px_rgba(2,43,58,0.04)] animate-in fade-in slide-in-from-bottom-4 fill-mode-backwards
-                    ${isUnread ? "bg-white border-[#e1e5f2]" : "bg-[#fcfcfc]/50 border-transparent"}
-                  `}
-                  style={{ animationDelay: `${Math.min(i * 30, 500)}ms` }}
-                >
-                  <div className={`w-48 shrink-0 truncate ${isUnread ? "font-bold text-[#022b3a]" : "font-medium text-[#022b3a]/80"}`}>
-                    {thread.sender}
-                  </div>
-                  <div className="flex-1 truncate">
-                    <span className={`${isUnread ? "font-bold text-[#022b3a]" : "font-semibold text-[#022b3a]/90"}`}>
-                      {thread.subject}
-                    </span>
-                    <span className="ml-2 text-[#022b3a]/60 text-pretty text-sm">  
-                      — {thread.snippet}  
-                    </span> 
-                  </div>
-                  {thread.note && (
-                    <span className="hidden md:inline-flex items-center rounded-full bg-[#bfdbf7]/30 px-2.5 py-0.5 text-xs font-medium text-[#1f7a8c]">
-                      Note attached
-                    </span>
-                  )}
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      if (isUnread) {
-                        markAsRead.mutate({ threadId: thread.id });
-                      } else {
-                        markAsUnread.mutate({ threadId: thread.id });
-                      }
-                    }}
-                    disabled={markAsRead.isPending || markAsUnread.isPending}
-                    title={isUnread ? "Mark as read" : "Mark as unread"}
-                    className="shrink-0 flex items-center justify-center rounded-md p-1.5 text-[#022b3a]/40 hover:text-[#1f7a8c] hover:bg-[#bfdbf7]/20 transition-colors disabled:opacity-40"
+                const isUnread = thread.labels.includes("UNREAD");
+                return (
+                  <Link 
+                    href={`/thread/${thread.id}`}
+                    key={thread.id} 
+                    className={`group flex items-center gap-4 border-b border-[#e8ecf4]/70 px-5 py-3.5 transition-colors last:border-b-0 hover:bg-[#f5f9fc] ${
+                      isUnread ? "bg-white" : "bg-[#fafbfd]/60"
+                    }`}
                   >
-                    <HugeiconsIcon
-                      icon={isUnread ? MailOpen01Icon : Mail01Icon}
-                      className="h-4 w-4 stroke-2"
-                    />
-                  </button>
-                  <div className={`text-xs tabular-nums text-right w-16 ${isUnread ? "font-bold text-[#1f7a8c]" : "font-medium text-[#022b3a]/50"}`}>
-                    {formatEmailTime(thread.date)}
-                  </div>
-                </Link>
+                    {/* Unread dot */}
+                    <div className="w-2 shrink-0">
+                      {isUnread && <div className="h-2 w-2 rounded-full bg-[#1f7a8c]" />}
+                    </div>
+
+                    {/* Sender */}
+                    <div className={`w-40 shrink-0 truncate text-[13px] ${isUnread ? "font-semibold text-[#022b3a]" : "font-medium text-[#022b3a]/70"}`}>
+                      {thread.sender}
+                    </div>
+
+                    {/* Subject + Snippet */}
+                    <div className="flex-1 min-w-0 truncate text-[13px]">
+                      <span className={isUnread ? "font-semibold text-[#022b3a]" : "font-medium text-[#022b3a]/80"}>
+                        {thread.subject}
+                      </span>
+                      <span className="ml-2 text-[#022b3a]/40">
+                        {thread.snippet}
+                      </span>
+                    </div>
+
+                    {/* Note badge */}
+                    {thread.note && (
+                      <span className="hidden shrink-0 rounded-md bg-[#1f7a8c]/8 px-2 py-0.5 text-[11px] font-medium text-[#1f7a8c] md:inline-block">
+                        Note
+                      </span>
+                    )}
+
+                    {/* Read/Unread toggle */}
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (isUnread) {
+                          markAsRead.mutate({ threadId: thread.id });
+                        } else {
+                          markAsUnread.mutate({ threadId: thread.id });
+                        }
+                      }}
+                      disabled={markAsRead.isPending || markAsUnread.isPending}
+                      title={isUnread ? "Mark as read" : "Mark as unread"}
+                      className="shrink-0 rounded-md p-1.5 text-[#022b3a]/30 opacity-0 transition-all group-hover:opacity-100 hover:bg-[#1f7a8c]/10 hover:text-[#1f7a8c] disabled:opacity-30"
+                    >
+                      <HugeiconsIcon icon={isUnread ? MailOpen01Icon : Mail01Icon} className="h-3.5 w-3.5 stroke-2" />
+                    </button>
+
+                    {/* Time */}
+                    <div className={`w-14 shrink-0 text-right text-[12px] tabular-nums ${isUnread ? "font-semibold text-[#022b3a]/70" : "text-[#022b3a]/40"}`}>
+                      {formatEmailTime(thread.date)}
+                    </div>
+                  </Link>
                 );
               })}
+
+              {data?.threads?.length === 0 && (
+                <div className="py-16 text-center text-sm text-[#022b3a]/40">
+                  No emails in cache. Hit <strong>Sync</strong> to pull from Gmail.
+                </div>
+              )}
+              
+              {data?.threads && data.threads.length > 0 && filteredThreads.length === 0 && (
+                <div className="py-16 text-center text-sm text-[#022b3a]/40">
+                  No results for &ldquo;{searchQuery}&rdquo;
+                </div>
+              )}
             </div>
 
-            {data?.threads?.length === 0 && (
-              <div className="text-center py-12 text-[#022b3a]/50">
-                No emails found in the local cache. Please sync your account or wait for webhooks.
-              </div>
-            )}
-            
-            {data?.threads && data.threads.length > 0 && filteredThreads.length === 0 && (
-              <div className="text-center py-12 text-[#022b3a]/50">
-                No emails match your search &ldquo;{searchQuery}&rdquo;.
-              </div>
+            {/* Keyboard hint */}
+            {filteredThreads.length > 0 && (
+              <p className="text-center text-[11px] text-[#022b3a]/35">
+                <kbd className="rounded border border-[#e8ecf4] bg-white px-1 py-0.5 font-mono text-[10px] shadow-sm">j</kbd>
+                {" / "}
+                <kbd className="rounded border border-[#e8ecf4] bg-white px-1 py-0.5 font-mono text-[10px] shadow-sm">k</kbd>
+                {" navigate · "}
+                <kbd className="rounded border border-[#e8ecf4] bg-white px-1 py-0.5 font-mono text-[10px] shadow-sm">Enter</kbd>
+                {" open · "}
+                <kbd className="rounded border border-[#e8ecf4] bg-white px-1 py-0.5 font-mono text-[10px] shadow-sm">⌘.</kbd>
+                {" Clerio"}
+              </p>
             )}
           </div>
         )}
       </div>
-
-    </>
+    </div>
   );
 }

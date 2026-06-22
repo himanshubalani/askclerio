@@ -4,6 +4,7 @@ import { corsair } from './corsair';
 
 const app = express();
 app.use(express.json());
+const PORT = Number(process.env.PORT ?? 3001);
 
 // The MCP server needs a tenant-scoped corsair client so that `run_script`
 // code can call `corsair.gmail.api.messages.send(...)` directly without
@@ -24,4 +25,4 @@ app.use('/mcp', createMcpRouter(() => {
   return createBaseMcpServer({ corsair: scopedCorsair, tenantId });
 }));
 
-app.listen(3001, () => console.log('MCP server running on :3001'));
+app.listen(PORT, () => console.log(`MCP server running on :${PORT}`));
