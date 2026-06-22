@@ -29,9 +29,9 @@ export function Sidebar() {
   return (
     <aside className="flex w-[260px] flex-col border-r border-[#e8ecf4] bg-gradient-to-b from-[#fafbfd] to-[#f5f7fa] px-3 py-5 antialiased">
       {/* Logo */}
-<a href="/" className="mb-5 flex items-center gap-2.5 px-3"> 
-  <Image src="/clerio_header_light_mode.svg" alt="AskClerio" width={90} height={20} className="h-8 w-auto opacity-90" /> 
-</a>
+      <Link href="/" className="mb-5 flex items-center gap-2.5 px-3">
+        <Image src="/clerio_header_light_mode.svg" alt="AskClerio" width={90} height={20} className="h-8 w-auto opacity-90" />
+      </Link>
 
       {/* Ask Clerio CTA */}
       <button
@@ -123,7 +123,10 @@ export function Sidebar() {
         </button>
 
         <div className="flex items-center px-2">
-          <UserButton showName appearance={{ elements: { userButtonBox: "flex-row" } }} />
+          <UserButton
+            showName
+            appearance={{ elements: { userButtonBox: { display: "flex", flexDirection: "row" } } }}
+          />
         </div>
       </div>
     </aside>

@@ -160,12 +160,12 @@ export default async function LandingPage() {
             height={44}
           />
           <div className="flex items-center gap-6 text-xs text-[#f5f5f5]/50">
-            <a href="/privacy" className="hover:text-[#ffffff] transition-colors">
+            <Link href="/privacy" className="hover:text-[#ffffff] transition-colors">
               Privacy Policy
-            </a>
-            <a href="/terms" className="hover:text-[#ffffff] transition-colors">
+            </Link>
+            <Link href="/terms" className="hover:text-[#ffffff] transition-colors">
               Terms of Use
-            </a>
+            </Link>
             <span>© {new Date().getFullYear()} Clerio</span>
           </div>
         </div>
