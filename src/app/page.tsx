@@ -20,7 +20,7 @@ export default async function LandingPage() {
         alt="Hero background"
         fill
         priority
-        className="object-cover pointer-events-none z-0 block dark:hidden"
+        className="object-cover pointer-events-none z-0 block"
       />
 
       <div className="relative z-10 flex flex-col items-center justify-center w-full">
