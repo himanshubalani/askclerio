@@ -22,13 +22,6 @@ export default async function LandingPage() {
         priority
         className="object-cover pointer-events-none z-0 block dark:hidden"
       />
-              <Image
-        src="/hero-bgd.png"
-        alt="Hero background"
-        fill
-        priority
-        className="object-cover pointer-events-none z-0 hidden dark:block"
-      />
 
       <div className="relative z-10 flex flex-col items-center justify-center w-full">
         <div className="inline-flex items-center gap-2 rounded-full border border-[#bfdbf7] bg-[#f0f7ff] px-4 py-1.5 text-xs font-medium text-[#1f7a8c] mb-8">
