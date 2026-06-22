@@ -24,4 +24,4 @@ app.use('/mcp', createMcpRouter(() => {
   return createBaseMcpServer({ corsair: scopedCorsair, tenantId });
 }));
 
-app.listen(3001, () => console.log('MCP server running on :3001'));
+app.listen(3001, () => console.log(`MCP server running on :3001`));
